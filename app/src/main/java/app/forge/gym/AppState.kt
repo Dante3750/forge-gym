@@ -78,7 +78,7 @@ fun Modifier.sharedKey(key: String): Modifier {
     val anim = LocalAnimScope.current ?: return this
     return with(shared) {
         this@sharedKey.sharedElement(
-            sharedContentState = rememberSharedContentState(key = key),
+            state = rememberSharedContentState(key = key),
             animatedVisibilityScope = anim
         )
     }
