@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- A bold slanted F, cut at the corners like the in-app buttons -->
+    <path
+        android:fillColor="#FFC9FF2F"
+        android:pathData="M36,30 L74,30 L74,40 L47,40 L47,50 L68,50 L68,60 L47,60 L47,78 L36,78 Z" />
+</vector>
