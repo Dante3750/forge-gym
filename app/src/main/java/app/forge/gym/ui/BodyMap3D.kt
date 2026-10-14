@@ -4,7 +4,7 @@ import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.animateDecay
-import androidx.compose.animation.core.exponentialDecay
+import androidx.compose.animation.core.FloatExponentialDecaySpec
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.animateFloat
@@ -59,7 +59,7 @@ class YawState {
     }
 
     suspend fun fling(velocity: Float) {
-        animateDecay(yaw, velocity, exponentialDecay(frictionMultiplier = 1.4f)) { v, _ -> yaw = v }
+        animateDecay(yaw, velocity, FloatExponentialDecaySpec(1.4f)) { v, _ -> yaw = v }
     }
 
     /** Nearest angle that shows the front (offset 0) or the back (offset 180). */

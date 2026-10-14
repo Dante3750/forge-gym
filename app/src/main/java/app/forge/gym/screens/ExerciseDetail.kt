@@ -1,0 +1,172 @@
+package app.forge.gym.screens
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.FavoriteBorder
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.unit.dp
+import app.forge.gym.LocalApp
+import app.forge.gym.data.formatWeight
+import app.forge.gym.data.prettyMuscle
+import app.forge.gym.data.unitLabel
+import app.forge.gym.sharedKey
+import app.forge.gym.ui.C
+import app.forge.gym.ui.CutSm
+import app.forge.gym.ui.Empty
+import app.forge.gym.ui.ExerciseImage
+import app.forge.gym.ui.ForgeButton
+import app.forge.gym.ui.IconBox
+import app.forge.gym.ui.Panel
+import app.forge.gym.ui.SectionLabel
+import app.forge.gym.ui.T
+import app.forge.gym.ui.Tag
+import app.forge.gym.ui.Txt
+import kotlin.math.max
+
+@Composable
+fun ExerciseDetailScreen(id: String, onBack: () -> Unit) {
+    val app = LocalApp.current
+    val store = app.store
+    val e = app.exercise(id)
+    if (e == null) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Empty("Exercise not found", "It may still be loading.")
+                ForgeButton("Back", onBack, filled = false)
+            }
+        }
+        return
+    }
+    val fav = id in store.favorites
+    val best = store.bestOneRm()[id]
+    val useKg = store.profile.useKg
+    val pager = rememberPagerState { max(e.images.size, 1) }
+
+    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 32.dp)) {
+        item {
+            Box(Modifier.fillMaxWidth().height(380.dp).sharedKey("ex-img-${e.id}")) {
+                HorizontalPager(pager, Modifier.fillMaxSize()) { page ->
+                    ExerciseImage(e.imageUrl(page), Modifier.fillMaxSize(), scrim = true)
+                }
+                Row(
+                    Modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(top = statusTop() + 12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    IconBox(Icons.AutoMirrored.Rounded.ArrowBack, onBack)
+                    IconBox(
+                        if (fav) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
+                        { store.toggleFavorite(e.id) }, tint = if (fav) C.volt else C.text
+                    )
+                }
+                if (e.images.size > 1) {
+                    Row(
+                        Modifier.align(Alignment.BottomStart).padding(start = 20.dp, bottom = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        for (i in e.images.indices) {
+                            Box(
+                                Modifier
+                                    .size(width = if (pager.currentPage == i) 28.dp else 12.dp, height = 4.dp)
+                                    .background(if (pager.currentPage == i) C.volt else C.dim.copy(alpha = 0.5f))
+                            )
+                        }
+                    }
+                }
+            }
+        }
+        item {
+            Column(Modifier.padding(horizontal = 20.dp).padding(top = 18.dp)) {
+                Txt(e.name.uppercase(), T.h1, maxLines = 3)
+                Spacer(Modifier.height(12.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Tag(e.levelLabel, if (e.level == "expert") C.ember else C.volt)
+                    Tag(if (e.equipment == "none") "No gear" else e.equipment)
+                    if (e.mechanic.isNotEmpty()) Tag(e.mechanic)
+                }
+            }
+        }
+        if (best != null) {
+            item {
+                Panel(Modifier.padding(horizontal = 20.dp).padding(top = 18.dp).fillMaxWidth(), accent = true) {
+                    Row(
+                        Modifier.padding(16.dp).fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column {
+                            Txt("YOUR BEST (EST. 1RM)", T.label, C.bg)
+                            Txt("Calculated from your logged sets", T.small, C.bg)
+                        }
+                        Row(verticalAlignment = Alignment.Bottom) {
+                            Txt(formatWeight(best, useKg), T.num, C.bg)
+                            Spacer(Modifier.width(4.dp))
+                            Txt(unitLabel(useKg).uppercase(), T.label, C.bg, Modifier.padding(bottom = 5.dp))
+                        }
+                    }
+                }
+            }
+        }
+        item {
+            Column(Modifier.padding(horizontal = 20.dp).padding(top = 24.dp)) {
+                SectionLabel("Muscles worked")
+                Spacer(Modifier.height(12.dp))
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    items(e.primary) { m ->
+                        Box(
+                            Modifier.clip(CutSm).background(C.volt).padding(horizontal = 14.dp, vertical = 8.dp)
+                        ) { Txt(prettyMuscle(m).uppercase(), T.label, C.bg) }
+                    }
+                    items(e.secondary) { m ->
+                        Box(
+                            Modifier.clip(CutSm).border(1.dp, C.line, CutSm).padding(horizontal = 14.dp, vertical = 8.dp)
+                        ) { Txt(prettyMuscle(m).uppercase(), T.label, C.dim) }
+                    }
+                }
+            }
+        }
+        item {
+            Column(Modifier.padding(horizontal = 20.dp).padding(top = 28.dp)) {
+                SectionLabel("How to do it")
+                Spacer(Modifier.height(14.dp))
+                e.steps.forEachIndexed { i, step ->
+                    Row(Modifier.padding(bottom = 16.dp)) {
+                        Txt("%02d".format(i + 1), T.h2, C.volt, Modifier.width(40.dp))
+                        Txt(step, T.body, C.text, Modifier.weight(1f))
+                    }
+                }
+            }
+        }
+        item {
+            ForgeButton(
+                if (fav) "Saved" else "Save exercise", { store.toggleFavorite(e.id) },
+                Modifier.padding(horizontal = 20.dp).fillMaxWidth().navigationBarsPadding(),
+                filled = !fav,
+                icon = if (fav) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder
+            )
+        }
+    }
+}
