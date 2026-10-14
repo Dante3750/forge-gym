@@ -100,7 +100,7 @@ fun WalkScreen() {
                     val v = event.values[0]
                     counter = v
                     val a = store.activeWalk
-                    if (a != null && a.running && a.baseline < 0f) store.setActiveWalk(a.copy(baseline = v))
+                    if (a != null && a.running && a.baseline < 0f) store.saveActiveWalk(a.copy(baseline = v))
                 }
 
                 override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
@@ -130,17 +130,17 @@ fun WalkScreen() {
 
     fun start() {
         val t = System.currentTimeMillis()
-        store.setActiveWalk(ActiveWalk(t, true, 0, 0L, t, if (counter >= 0f) counter else -1f))
+        store.saveActiveWalk(ActiveWalk(t, true, 0, 0L, t, if (counter >= 0f) counter else -1f))
     }
 
     fun pause() {
         val a = active ?: return
-        store.setActiveWalk(a.copy(running = false, accumSteps = sessionSteps, accumMillis = sessionMillis, lastResumeAt = 0L, baseline = -1f))
+        store.saveActiveWalk(a.copy(running = false, accumSteps = sessionSteps, accumMillis = sessionMillis, lastResumeAt = 0L, baseline = -1f))
     }
 
     fun resume() {
         val a = active ?: return
-        store.setActiveWalk(a.copy(running = true, lastResumeAt = System.currentTimeMillis(), baseline = if (counter >= 0f) counter else -1f))
+        store.saveActiveWalk(a.copy(running = true, lastResumeAt = System.currentTimeMillis(), baseline = if (counter >= 0f) counter else -1f))
     }
 
     fun finish() {
@@ -148,7 +148,7 @@ fun WalkScreen() {
         if (sessionSteps > 0 || sessionMillis > 30_000L) {
             store.addWalk(WalkLog(a.startedAt, (sessionMillis / 1000).toInt(), sessionSteps, distanceM, kcal))
         }
-        store.setActiveWalk(null)
+        store.saveActiveWalk(null)
     }
 
     val today = LocalDate.now()

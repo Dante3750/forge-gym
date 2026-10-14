@@ -93,7 +93,7 @@ class Store(context: Context) {
         sp.edit().putString("water", o.toString()).apply()
     }
 
-    fun setActiveWalk(a: ActiveWalk?) {
+    fun saveActiveWalk(a: ActiveWalk?) {
         activeWalk = a
         if (a == null) {
             sp.edit().remove("activeWalk").apply()
