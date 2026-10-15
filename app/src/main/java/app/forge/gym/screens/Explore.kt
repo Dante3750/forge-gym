@@ -53,6 +53,8 @@ import app.forge.gym.data.Exercise
 import app.forge.gym.data.Gender
 import app.forge.gym.data.Level
 import app.forge.gym.data.Place
+import app.forge.gym.data.equipment
+import app.forge.gym.data.isHome
 import app.forge.gym.data.prettyMuscle
 import app.forge.gym.sharedKey
 import app.forge.gym.ui.BodyMap3D
@@ -240,7 +242,7 @@ fun ExerciseRow(e: Exercise, fav: Boolean, onClick: () -> Unit, onFav: () -> Uni
 
 private fun suitsProfile(e: Exercise, level: Level, place: Place): Boolean {
     if (e.category != "strength" && e.category != "powerlifting" && e.category != "plyometrics") return false
-    val eqOk = if (place == Place.HOME) e.equipment == "body only" || e.equipment == "bands"
+    val eqOk = if (place.isHome) e.equipment in place.equipment
     else e.equipment != "other" && e.equipment != "foam roll"
     val lvOk = when (level) {
         Level.BEGINNER -> e.level == "beginner"

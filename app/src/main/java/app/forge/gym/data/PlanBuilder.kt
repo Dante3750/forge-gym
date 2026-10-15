@@ -35,8 +35,6 @@ object PlanBuilder {
 
     private fun s(vararg m: String, count: Int = 1) = Slot(m.toList(), count)
 
-    private val gymEquipment = setOf("barbell", "dumbbell", "cable", "machine", "e-z curl bar", "kettlebells", "body only")
-    private val homeEquipment = setOf("body only", "bands")
 
     private val goodWords = mapOf(
         "squat" to 4, "deadlift" to 4, "bench" to 4, "row" to 3, "pulldown" to 3, "pull-up" to 3,
@@ -148,7 +146,7 @@ object PlanBuilder {
     // ---- picking ----------------------------------------------------------
 
     private fun pick(pool: List<Exercise>, slot: Slot, p: Profile, used: Set<String>, dayIdx: Int, n: Int): Exercise? {
-        val eq = if (p.place == Place.HOME) homeEquipment else gymEquipment
+        val eq = p.place.equipment
         val lv = levelsFor(p.level)
         val byMuscle = pool.filter { e -> e.equipment in eq && e.primary.any { it in slot.muscles } }
         var cands = byMuscle.filter { it.level in lv }
@@ -180,8 +178,8 @@ object PlanBuilder {
     }
 
     private fun finisher(all: List<Exercise>, p: Profile, used: Set<String>): PlanExercise? {
-        val cat = if (p.place == Place.HOME) "plyometrics" else "cardio"
-        val c = all.filter { it.category == cat && it.id !in used && (p.place != Place.HOME || it.equipment == "body only") }
+        val cat = if (p.place.isHome) "plyometrics" else "cardio"
+        val c = all.filter { it.category == cat && it.id !in used && (!p.place.isHome || it.equipment == "body only") }
             .sortedBy { it.name }
         if (c.isEmpty()) return null
         val e = c[abs(p.planSeed) % c.size]
@@ -190,7 +188,7 @@ object PlanBuilder {
 
     fun build(p: Profile, all: List<Exercise>): List<PlanDay> {
         if (all.isEmpty()) return emptyList()
-        val pool = all.filter { it.category == "strength" || it.category == "powerlifting" || (p.place == Place.HOME && it.category == "plyometrics") }
+        val pool = all.filter { it.category == "strength" || it.category == "powerlifting" || (p.place.isHome && it.category == "plyometrics") }
         val used = HashSet<String>()
         return specs(p).mapIndexed { dayIdx, spec ->
             val items = ArrayList<PlanExercise>()

@@ -34,11 +34,83 @@ import kotlin.math.roundToInt
 
 /** 3D trainer loops rendered by github.com/Dante3750/forge-motion and served from its media branch. */
 object Motion {
-    private const val BASE = "https://raw.githubusercontent.com/Dante3750/forge-motion/media/v1/"
+    private const val BASE = "https://raw.githubusercontent.com/Dante3750/forge-motion/media/"
     const val FRAMES = 32
     const val COLS = 8
     const val LOOP_SEC = 2.8f
-    fun url(movement: String, female: Boolean) = BASE + movement + (if (female) "_f" else "_m") + ".webp"
+
+    /** Newest render first, then the older set as a fallback. */
+    fun urls(movement: String, female: Boolean, angle: Int = 0): List<String> {
+        val g = if (female) "_f" else "_m"
+        val v2 = BASE + "v2/" + movement + g + (if (angle == 1) "_b" else "") + ".webp"
+        return if (angle == 1) listOf(v2) else listOf(v2, BASE + "v1/" + movement + g + ".webp")
+    }
+
+    /** The same training goal done three ways: gym, dumbbells at home, and no equipment. */
+    private val GROUPS = listOf(
+        listOf("squat_bb", "squat_goblet", "squat_bw"),
+        listOf("squat_front_bb", "squat_goblet", "squat_bw"),
+        listOf("leg_press", "squat_goblet", "wall_sit"),
+        listOf("leg_extension", "goblet_lunge", "wall_sit"),
+        listOf("deadlift_bb", "deadlift_db", "glute_bridge"),
+        listOf("deadlift_kb", "deadlift_db", "glute_bridge"),
+        listOf("rdl_bb", "rdl_db", "glute_bridge_single"),
+        listOf("good_morning", "rdl_db", "back_ext"),
+        listOf("leg_curl", "rdl_db", "glute_bridge_single"),
+        listOf("hip_thrust_bb", "glute_bridge", "glute_bridge_single"),
+        listOf("lunge_bb", "lunge_db", "lunge"),
+        listOf("split_squat", "goblet_lunge", "lunge"),
+        listOf("step_up", "lunge_db", "jump_squat"),
+        listOf("calf_raise", "calf_raise_seated"),
+        listOf("bench_bb", "bench_db", "pushup"),
+        listOf("bench_db", "floor_press_db", "pushup"),
+        listOf("incline_bb", "incline_db", "pushup_incline"),
+        listOf("fly_db", "cable_fly", "pushup"),
+        listOf("cable_fly", "fly_db", "pushup_knee"),
+        listOf("dips", "bench_dip", "diamond_pushup"),
+        listOf("ohp_bb", "ohp_db", "pike_pushup"),
+        listOf("seated_ohp_db", "ohp_db", "pike_pushup"),
+        listOf("push_press", "ohp_db", "pike_pushup"),
+        listOf("lateral_raise", "cable_lateral"),
+        listOf("front_raise", "lateral_raise"),
+        listOf("rear_fly", "face_pull"),
+        listOf("upright_row", "lateral_raise"),
+        listOf("shrug", "farmer_walk"),
+        listOf("pulldown", "pullup", "pullover"),
+        listOf("pullup", "pulldown", "row_db_single"),
+        listOf("row_bb", "row_db", "row_db_single"),
+        listOf("row_cable", "row_db_single", "row_db"),
+        listOf("curl_bb", "curl_db", "hammer_curl"),
+        listOf("cable_curl", "curl_db", "hammer_curl"),
+        listOf("preacher_curl", "curl_db", "hammer_curl"),
+        listOf("pushdown", "oh_ext", "bench_dip"),
+        listOf("skullcrusher", "oh_ext", "diamond_pushup"),
+        listOf("kickback", "oh_ext", "bench_dip"),
+        listOf("crunch", "situp", "leg_raise"),
+        listOf("hanging_leg_raise", "leg_raise", "mountain_climber"),
+        listOf("plank", "mountain_climber", "ab_rollout"),
+        listOf("russian_twist", "crunch", "plank"),
+        listOf("clean", "kb_swing", "jump_squat"),
+        listOf("snatch", "kb_swing", "jump_squat"),
+        listOf("kb_swing", "deadlift_kb", "jump_squat"),
+        listOf("run", "jump_rope", "jumping_jack"),
+        listOf("bike", "row_erg", "jumping_jack"),
+    )
+    private val byMovement: Map<String, List<String>> = buildMap { GROUPS.forEach { g -> g.forEach { m -> putIfAbsent(m, g) } } }
+
+    fun ways(movement: String): List<String> = byMovement[movement] ?: emptyList()
+
+    private val MACHINES = setOf("leg_press", "leg_extension", "leg_curl", "pulldown", "row_cable", "pushdown", "face_pull", "cable_fly",
+        "cable_curl", "cable_lateral", "dips", "pullup", "hanging_leg_raise", "bike", "row_erg", "calf_raise_seated", "preacher_curl")
+
+    fun wayLabel(movement: String): String = when {
+        movement.endsWith("_bb") || movement in setOf("good_morning", "clean", "snatch", "push_press", "skullcrusher", "shrug", "upright_row") -> "Gym · Barbell"
+        movement in MACHINES || movement.startsWith("cable") -> "Gym · Machine"
+        movement.contains("_db") || movement.contains("goblet") || movement in setOf("lateral_raise", "front_raise", "rear_fly", "fly_db",
+            "oh_ext", "kickback", "hammer_curl", "pullover", "calf_raise", "farmer_walk", "step_up", "split_squat") -> "Home · Dumbbells"
+        movement.contains("kb") -> "Kettlebell"
+        else -> "No equipment"
+    }
 }
 
 private class Sheet(val image: ImageBitmap, val cell: Int, val bg: Color)
@@ -52,20 +124,25 @@ fun MotionPlayer(
     movement: String,
     female: Boolean,
     modifier: Modifier = Modifier,
+    angle: Int = 0,
     speed: Float = 1f,
     playing: Boolean = true,
     scrim: Boolean = true,
     fallback: @Composable () -> Unit = {}
 ) {
     val ctx = LocalContext.current
-    val url = Motion.url(movement, female)
+    val urls = Motion.urls(movement, female, angle)
+    val url = urls.first()
     var sheet by remember(url) { mutableStateOf<Sheet?>(null) }
-    var failed by remember(url) { mutableStateOf(false) }
     LaunchedEffect(url) {
-        val req = ImageRequest.Builder(ctx).data(url).allowHardware(false).build()
-        val r = ctx.imageLoader.execute(req)
-        val bmp = ((r as? SuccessResult)?.drawable as? BitmapDrawable)?.bitmap
-        if (bmp == null) { failed = true; return@LaunchedEffect }
+        var bmp: android.graphics.Bitmap? = null
+        for (u in urls) {
+            val req = ImageRequest.Builder(ctx).data(u).allowHardware(false).build()
+            val r = ctx.imageLoader.execute(req)
+            bmp = ((r as? SuccessResult)?.drawable as? BitmapDrawable)?.bitmap
+            if (bmp != null) break
+        }
+        if (bmp == null) return@LaunchedEffect
         val cell = bmp.width / Motion.COLS
         val px = bmp.getPixel(3, 3)
         sheet = Sheet(bmp.asImageBitmap(), cell, Color(px))

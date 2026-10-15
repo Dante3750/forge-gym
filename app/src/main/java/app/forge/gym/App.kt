@@ -98,7 +98,7 @@ fun ForgeApp() {
                 }
                 composable("exercise/{id}", arguments = listOf(navArgument("id") { type = NavType.StringType })) { e ->
                     CompositionLocalProvider(LocalAnimScope provides this) {
-                        ExerciseDetailScreen(e.arguments?.getString("id").orEmpty()) { nav.popBackStack() }
+                        ExerciseDetailScreen(e.arguments?.getString("id").orEmpty(), { nav.popBackStack() }, { nav.navigate("exercise/$it") })
                     }
                 }
                 composable("plan") {

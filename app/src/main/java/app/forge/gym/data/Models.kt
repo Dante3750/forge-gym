@@ -22,8 +22,19 @@ enum class Goal(val label: String, val blurb: String) {
 
 enum class Place(val label: String, val blurb: String) {
     GYM("Gym", "Barbells, dumbbells, machines, cables."),
-    HOME("Home", "Bodyweight and resistance bands only.")
+    HOME_DB("Dumbbells", "At home with a pair of dumbbells."),
+    HOME("No gear", "Bodyweight only, anywhere.")
 }
+
+/** Equipment a training place has. */
+val Place.equipment: Set<String>
+    get() = when (this) {
+        Place.GYM -> setOf("barbell", "dumbbell", "cable", "machine", "e-z curl bar", "kettlebells", "body only")
+        Place.HOME_DB -> setOf("dumbbell", "kettlebells", "body only", "bands")
+        Place.HOME -> setOf("body only", "bands")
+    }
+
+val Place.isHome: Boolean get() = this != Place.GYM
 
 data class Exercise(
     val id: String,

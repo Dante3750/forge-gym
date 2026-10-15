@@ -40,6 +40,14 @@ class AppState(val context: Context) {
     /** Name of the rendered 3D movement loop for an exercise, if one exists. */
     fun motionFor(id: String): String? = motionMap[id]
 
+    /** A library exercise that uses [movement], preferring one that trains [muscle]. */
+    fun exampleFor(movement: String, muscle: String?, exclude: String? = null): Exercise? {
+        val cands = exercises.filter { motionMap[it.id] == movement && it.id != exclude }
+        return cands.firstOrNull { muscle != null && muscle in it.primary && it.level == "beginner" }
+            ?: cands.firstOrNull { muscle != null && muscle in it.primary }
+            ?: cands.minByOrNull { it.name.length }
+    }
+
     suspend fun loadExercises() {
         if (exercises.isNotEmpty()) return
         motionMap = withContext(Dispatchers.IO) {

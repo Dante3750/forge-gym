@@ -43,6 +43,7 @@ import app.forge.gym.sharedKey
 import app.forge.gym.ui.C
 import app.forge.gym.ui.CutSm
 import app.forge.gym.ui.CutXs
+import app.forge.gym.ui.Motion
 import app.forge.gym.ui.MotionPlayer
 import app.forge.gym.ui.pressable
 import app.forge.gym.ui.Empty
@@ -69,7 +70,7 @@ private fun MiniToggle(text: String, on: Boolean, onClick: () -> Unit) {
 }
 
 @Composable
-fun ExerciseDetailScreen(id: String, onBack: () -> Unit) {
+fun ExerciseDetailScreen(id: String, onBack: () -> Unit, onOpen: (String) -> Unit = {}) {
     val app = LocalApp.current
     val store = app.store
     val e = app.exercise(id)
@@ -90,6 +91,7 @@ fun ExerciseDetailScreen(id: String, onBack: () -> Unit) {
     var mode by rememberSaveable { mutableIntStateOf(0) }
     var female by rememberSaveable { mutableStateOf(store.profile.gender == Gender.FEMALE) }
     var slow by rememberSaveable { mutableStateOf(false) }
+    var angle by rememberSaveable { mutableIntStateOf(0) }
 
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 32.dp)) {
         item {
@@ -100,7 +102,7 @@ fun ExerciseDetailScreen(id: String, onBack: () -> Unit) {
                     }
                 }
                 if (motion != null && mode == 0) {
-                    MotionPlayer(motion, female, Modifier.fillMaxSize(), speed = if (slow) 0.45f else 1f) {
+                    MotionPlayer(motion, female, Modifier.fillMaxSize(), angle = angle, speed = if (slow) 0.45f else 1f) {
                         ExerciseImage(e.imageUrl(0), Modifier.fillMaxSize(), scrim = true)
                     }
                 } else photos()
@@ -122,6 +124,7 @@ fun ExerciseDetailScreen(id: String, onBack: () -> Unit) {
                         if (mode == 0) {
                             MiniToggle(if (female) "Women" else "Men", true) { female = !female }
                             MiniToggle("0.5×", slow) { slow = !slow }
+                            MiniToggle(if (angle == 0) "Angle 1" else "Angle 2", angle == 1) { angle = 1 - angle }
                         }
                         MiniToggle(if (mode == 0) "Photos" else "3D", false) { mode = 1 - mode }
                     }
@@ -196,6 +199,36 @@ fun ExerciseDetailScreen(id: String, onBack: () -> Unit) {
                         Box(
                             Modifier.clip(CutSm).border(1.dp, C.line, CutSm).padding(horizontal = 14.dp, vertical = 8.dp)
                         ) { Txt(prettyMuscle(m).uppercase(), T.label, C.dim) }
+                    }
+                }
+            }
+        }
+        val ways = motion?.let { m -> Motion.ways(m) }.orEmpty()
+        if (ways.size > 1) {
+            item {
+                Column(Modifier.padding(top = 26.dp)) {
+                    SectionLabel("${ways.size} ways to train it", Modifier.padding(horizontal = 20.dp))
+                    Spacer(Modifier.height(12.dp))
+                    LazyRow(
+                        contentPadding = PaddingValues(horizontal = 20.dp),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        items(ways) { mv ->
+                            val ex = if (mv == motion) e else app.exampleFor(mv, e.primary.firstOrNull(), e.id)
+                            val here = mv == motion
+                            Panel(Modifier.width(160.dp), accent = false, onClick = if (here || ex == null) null else ({ onOpen(ex.id) })) {
+                                Column {
+                                    MotionPlayer(mv, female, Modifier.fillMaxWidth().height(150.dp), scrim = false) {
+                                        ExerciseImage(ex?.imageUrl(0), Modifier.fillMaxSize())
+                                    }
+                                    Column(Modifier.padding(12.dp)) {
+                                        Txt(Motion.wayLabel(mv).uppercase(), T.label, if (here) C.volt else C.dim)
+                                        Spacer(Modifier.height(2.dp))
+                                        Txt(if (here) "This one" else ex?.name ?: "", T.bodyM, maxLines = 2)
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
