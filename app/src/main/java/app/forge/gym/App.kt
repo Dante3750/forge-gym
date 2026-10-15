@@ -59,12 +59,22 @@ import app.forge.gym.ui.pressable
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun ForgeApp() {
+fun ForgeApp(route: String? = null) {
     val app = LocalApp.current
     val nav = rememberNavController()
-    val start = if (app.store.profile.onboarded) "main" else "onboarding"
-    var tab by rememberSaveable { mutableIntStateOf(0) }
+    val start = if (route == "onboarding") "onboarding" else if (app.store.profile.onboarded) "main" else "onboarding"
+    var tab by rememberSaveable { mutableIntStateOf(route?.takeIf { it.startsWith("tab:") }?.split(":")?.getOrNull(1)?.toIntOrNull() ?: 0) }
     val exploreUi = rememberExploreUi()
+    androidx.compose.runtime.LaunchedEffect(route) {
+        if (route == null) return@LaunchedEffect
+        if (route.endsWith(":body")) exploreUi.seg = 1
+        when {
+            route.startsWith("exercise:") -> nav.navigate("exercise/" + route.removePrefix("exercise:"))
+            route == "plan" -> nav.navigate("plan")
+            route.startsWith("session:") -> nav.navigate("session/" + route.removePrefix("session:"))
+            route == "settings" -> nav.navigate("settings")
+        }
+    }
     val exploreList = rememberLazyListState()
 
     SharedTransitionLayout {

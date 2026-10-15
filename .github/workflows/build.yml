@@ -32,6 +32,12 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleDebug --stacktrace --console=plain 2>&1 | tee build.log
 
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: apk
+          path: app/build/outputs/apk/debug/app-debug.apk
+
       - name: Publish APK as a release
         if: success()
         env:
@@ -63,3 +69,36 @@ jobs:
           [ -f errors.log ] && git add errors.log || true
           git commit -m "build log ${GITHUB_RUN_NUMBER}"
           git push -f origin build-logs
+
+  screenshots:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: apk
+          path: apk
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Take screenshots on an emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          profile: pixel_6
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: bash .github/shots.sh apk/app-debug.apk shots
+      - name: Publish to the screenshots branch
+        run: |
+          ls -la shots
+          cd shots
+          git init -q -b screenshots
+          git config user.name "github-actions"; git config user.email "actions@github.com"
+          git add -A && git commit -qm "Screenshots ${GITHUB_SHA}"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" screenshots

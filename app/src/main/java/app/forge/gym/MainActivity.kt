@@ -20,10 +20,11 @@ class MainActivity : ComponentActivity() {
             navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT)
         )
         app = AppState(applicationContext)
+        val route = Demo.route(intent, app)
         setContent {
             LaunchedEffect(Unit) { app.loadExercises() }
             CompositionLocalProvider(LocalApp provides app) {
-                ForgeTheme { ForgeApp() }
+                ForgeTheme { ForgeApp(route) }
             }
         }
     }
