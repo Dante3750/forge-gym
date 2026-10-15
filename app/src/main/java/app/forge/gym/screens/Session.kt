@@ -1,5 +1,7 @@
 package app.forge.gym.screens
 
+import app.forge.gym.data.Gender
+
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
@@ -73,6 +75,7 @@ import app.forge.gym.ui.CutSm
 import app.forge.gym.ui.CutXs
 import app.forge.gym.ui.Empty
 import app.forge.gym.ui.ExerciseLoop
+import app.forge.gym.ui.MotionPlayer
 import app.forge.gym.ui.ForgeButton
 import app.forge.gym.ui.IconBox
 import app.forge.gym.ui.Panel
@@ -259,8 +262,13 @@ private fun SessionBody(day: PlanDay, items: List<SessionEx>, onClose: () -> Uni
                         label = "exercise"
                     ) { c ->
                         val si = items[c.coerceIn(0, items.lastIndex)]
-                        Box(Modifier.fillMaxWidth().height(250.dp)) {
-                            ExerciseLoop(si.ex, Modifier.fillMaxSize())
+                        Box(Modifier.fillMaxWidth().height(300.dp)) {
+                            val mv = LocalApp.current.motionFor(si.ex.id)
+                            if (mv != null) {
+                                MotionPlayer(mv, LocalApp.current.store.profile.gender == Gender.FEMALE, Modifier.fillMaxSize()) {
+                                    ExerciseLoop(si.ex, Modifier.fillMaxSize())
+                                }
+                            } else ExerciseLoop(si.ex, Modifier.fillMaxSize())
                             Column(Modifier.align(Alignment.BottomStart).padding(horizontal = 20.dp, vertical = 14.dp)) {
                                 Txt(si.ex.name.uppercase(), T.h1, maxLines = 2)
                                 Txt(

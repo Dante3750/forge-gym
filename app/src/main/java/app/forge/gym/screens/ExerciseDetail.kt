@@ -25,17 +25,26 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.FavoriteBorder
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import app.forge.gym.LocalApp
+import app.forge.gym.data.Gender
 import app.forge.gym.data.formatWeight
 import app.forge.gym.data.prettyMuscle
 import app.forge.gym.data.unitLabel
 import app.forge.gym.sharedKey
 import app.forge.gym.ui.C
 import app.forge.gym.ui.CutSm
+import app.forge.gym.ui.CutXs
+import app.forge.gym.ui.MotionPlayer
+import app.forge.gym.ui.pressable
 import app.forge.gym.ui.Empty
 import app.forge.gym.ui.ExerciseImage
 import app.forge.gym.ui.ForgeButton
@@ -46,6 +55,18 @@ import app.forge.gym.ui.T
 import app.forge.gym.ui.Tag
 import app.forge.gym.ui.Txt
 import kotlin.math.max
+
+@Composable
+private fun MiniToggle(text: String, on: Boolean, onClick: () -> Unit) {
+    Box(
+        Modifier
+            .pressable(onClick = onClick)
+            .clip(CutXs)
+            .background(if (on) C.volt else C.bg.copy(alpha = 0.72f))
+            .border(1.dp, if (on) C.volt else C.line, CutXs)
+            .padding(horizontal = 12.dp, vertical = 8.dp)
+    ) { Txt(text.uppercase(), T.label, if (on) C.bg else C.text) }
+}
 
 @Composable
 fun ExerciseDetailScreen(id: String, onBack: () -> Unit) {
@@ -65,13 +86,24 @@ fun ExerciseDetailScreen(id: String, onBack: () -> Unit) {
     val best = store.bestOneRm()[id]
     val useKg = store.profile.useKg
     val pager = rememberPagerState { max(e.images.size, 1) }
+    val motion = app.motionFor(e.id)
+    var mode by rememberSaveable { mutableIntStateOf(0) }
+    var female by rememberSaveable { mutableStateOf(store.profile.gender == Gender.FEMALE) }
+    var slow by rememberSaveable { mutableStateOf(false) }
 
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 32.dp)) {
         item {
-            Box(Modifier.fillMaxWidth().height(380.dp).sharedKey("ex-img-${e.id}")) {
-                HorizontalPager(pager, Modifier.fillMaxSize()) { page ->
-                    ExerciseImage(e.imageUrl(page), Modifier.fillMaxSize(), scrim = true)
+            Box(Modifier.fillMaxWidth().height(400.dp).sharedKey("ex-img-${e.id}")) {
+                val photos: @Composable () -> Unit = {
+                    HorizontalPager(pager, Modifier.fillMaxSize()) { page ->
+                        ExerciseImage(e.imageUrl(page), Modifier.fillMaxSize(), scrim = true)
+                    }
                 }
+                if (motion != null && mode == 0) {
+                    MotionPlayer(motion, female, Modifier.fillMaxSize(), speed = if (slow) 0.45f else 1f) {
+                        ExerciseImage(e.imageUrl(0), Modifier.fillMaxSize(), scrim = true)
+                    }
+                } else photos()
                 Row(
                     Modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(top = statusTop() + 12.dp),
                     horizontalArrangement = Arrangement.SpaceBetween
@@ -82,7 +114,19 @@ fun ExerciseDetailScreen(id: String, onBack: () -> Unit) {
                         { store.toggleFavorite(e.id) }, tint = if (fav) C.volt else C.text
                     )
                 }
-                if (e.images.size > 1) {
+                if (motion != null) {
+                    Row(
+                        Modifier.align(Alignment.BottomEnd).padding(end = 16.dp, bottom = 14.dp),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        if (mode == 0) {
+                            MiniToggle(if (female) "Women" else "Men", true) { female = !female }
+                            MiniToggle("0.5×", slow) { slow = !slow }
+                        }
+                        MiniToggle(if (mode == 0) "Photos" else "3D", false) { mode = 1 - mode }
+                    }
+                }
+                if ((motion == null || mode == 1) && e.images.size > 1) {
                     Row(
                         Modifier.align(Alignment.BottomStart).padding(start = 20.dp, bottom = 16.dp),
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
@@ -96,6 +140,14 @@ fun ExerciseDetailScreen(id: String, onBack: () -> Unit) {
                         }
                     }
                 }
+            }
+        }
+        if (motion != null && mode == 0) {
+            item {
+                Txt(
+                    "3D demo of the movement pattern. Tap Photos for this exact variation.",
+                    T.small, C.faint, Modifier.padding(horizontal = 20.dp).padding(top = 10.dp)
+                )
             }
         }
         item {

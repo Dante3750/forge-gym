@@ -35,8 +35,19 @@ class AppState(val context: Context) {
     private var cachedKey: String? = null
     private var cachedPlan: List<PlanDay> = emptyList()
 
+    private var motionMap: Map<String, String> = emptyMap()
+
+    /** Name of the rendered 3D movement loop for an exercise, if one exists. */
+    fun motionFor(id: String): String? = motionMap[id]
+
     suspend fun loadExercises() {
         if (exercises.isNotEmpty()) return
+        motionMap = withContext(Dispatchers.IO) {
+            runCatching {
+                val o = org.json.JSONObject(context.assets.open("motion_map.json").bufferedReader().use { it.readText() })
+                o.keys().asSequence().associateWith { o.getString(it) }
+            }.getOrDefault(emptyMap())
+        }
         val list = withContext(Dispatchers.Default) { ExerciseRepo.load(context) }
         byId = list.associateBy { it.id }
         exercises = list
