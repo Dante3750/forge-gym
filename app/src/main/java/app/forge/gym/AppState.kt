@@ -61,7 +61,8 @@ class AppState(val context: Context) {
         exercises = list
     }
 
-    fun exercise(id: String): Exercise? = byId[id]
+    /** Reads [exercises] first so screens recompose once the library has loaded. */
+    fun exercise(id: String): Exercise? = if (exercises.isEmpty()) null else byId[id]
 
     /** The weekly program for the current profile. Cached until the profile or the library changes. */
     fun plan(): List<PlanDay> {

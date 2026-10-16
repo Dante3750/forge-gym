@@ -77,7 +77,8 @@ fun ExerciseDetailScreen(id: String, onBack: () -> Unit, onOpen: (String) -> Uni
     if (e == null) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Empty("Exercise not found", "It may still be loading.")
+                if (app.exercises.isEmpty()) Empty("Loading", "Getting the exercise library ready.")
+                else Empty("Exercise not found", "It may have been renamed.")
                 ForgeButton("Back", onBack, filled = false)
             }
         }
