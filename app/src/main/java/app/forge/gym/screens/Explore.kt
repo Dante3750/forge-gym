@@ -74,7 +74,10 @@ import app.forge.gym.ui.rememberYawState
 import kotlinx.coroutines.launch
 
 /** Filter and view state for Explore. Saved across navigation so coming back from a detail page keeps your place. */
-class ExploreUi(seg: Int = 0, query: String = "", muscle: String = "", level: String = "", equip: String = "", favOnly: Boolean = false, body: String = "") {
+class ExploreUi(seg: Int = 0, query: String = "", muscle: String = "", level: String = "", equip: String = "", favOnly: Boolean = false, body: String = "", forYou: Boolean = true, bodyAll: Boolean = false) {
+    /** true = suggestions for this profile, false = the whole library. */
+    var forYou by mutableStateOf(forYou)
+    var bodyAll by mutableStateOf(bodyAll)
     var seg by mutableIntStateOf(seg)
     var query by mutableStateOf(query)
     var muscle by mutableStateOf(muscle)
@@ -85,8 +88,8 @@ class ExploreUi(seg: Int = 0, query: String = "", muscle: String = "", level: St
 
     companion object {
         val Saver = listSaver<ExploreUi, Any>(
-            save = { listOf(it.seg, it.query, it.muscle, it.level, it.equip, it.favOnly, it.body) },
-            restore = { ExploreUi(it[0] as Int, it[1] as String, it[2] as String, it[3] as String, it[4] as String, it[5] as Boolean, it[6] as String) }
+            save = { listOf(it.seg, it.query, it.muscle, it.level, it.equip, it.favOnly, it.body, it.forYou, it.bodyAll) },
+            restore = { ExploreUi(it[0] as Int, it[1] as String, it[2] as String, it[3] as String, it[4] as String, it[5] as Boolean, it[6] as String, it[7] as Boolean, it[8] as Boolean) }
         )
     }
 }
@@ -127,9 +130,21 @@ private fun LibraryPane(ui: ExploreUi, listState: LazyListState, onOpen: (String
     val store = app.store
     val favs = store.favorites.toList()
     val all = app.exercises
-    val shown = remember(all, ui.query, ui.muscle, ui.level, ui.equip, ui.favOnly, favs) {
+    val p = store.profile
+    val planIds = remember(all, p.planKey) { app.plan().flatMap { d -> d.items.map { it.exerciseId } }.toSet() }
+    val suggested = remember(all, p.level, p.place, planIds) {
+        all.filter { suitsProfile(it, p.level, p.place) }
+            .sortedWith(
+                compareByDescending<Exercise> { it.id in planIds }
+                    .thenByDescending { app.motionFor(it.id) != null }
+                    .thenByDescending { it.isCompound }
+                    .thenBy { it.name }
+            )
+    }
+    val base = if (ui.forYou) suggested else all
+    val shown = remember(base, ui.query, ui.muscle, ui.level, ui.equip, ui.favOnly, favs) {
         val q = ui.query.trim().lowercase()
-        all.filter { e ->
+        base.filter { e ->
             (q.isEmpty() || e.name.lowercase().contains(q) || e.primary.any { it.contains(q) }) &&
                 (ui.muscle.isEmpty() || ui.muscle in e.primary) &&
                 (ui.level.isEmpty() || e.level == ui.level) &&
@@ -140,7 +155,12 @@ private fun LibraryPane(ui: ExploreUi, listState: LazyListState, onOpen: (String
 
     Column(Modifier.fillMaxSize()) {
         SearchField(ui.query, { ui.query = it }, "Search ${all.size} exercises", Modifier.padding(horizontal = 20.dp))
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(10.dp))
+        Segmented(
+            listOf("For you · ${suggested.size}", "All · ${all.size}"), if (ui.forYou) 0 else 1,
+            { ui.forYou = it == 0 }, Modifier.padding(horizontal = 20.dp)
+        )
+        Spacer(Modifier.height(10.dp))
         LazyRow(contentPadding = PaddingValues(horizontal = 20.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             item { Chip("All muscles", ui.muscle.isEmpty(), { ui.muscle = "" }) }
             items(ALL_MUSCLES) { m ->
@@ -159,8 +179,9 @@ private fun LibraryPane(ui: ExploreUi, listState: LazyListState, onOpen: (String
         }
         Spacer(Modifier.height(12.dp))
         Txt(
-            "${shown.size} EXERCISES", T.label, C.faint,
-            Modifier.padding(horizontal = 20.dp)
+            if (ui.forYou) "${shown.size} PICKED FOR ${p.level.label.uppercase()} · ${p.place.label.uppercase()} · YOUR PLAN FIRST"
+            else "${shown.size} EXERCISES",
+            T.label, C.faint, Modifier.padding(horizontal = 20.dp), maxLines = 1
         )
         Spacer(Modifier.height(8.dp))
         if (all.isEmpty()) {
@@ -263,12 +284,11 @@ private fun BodyPane(ui: ExploreUi, onOpen: (String) -> Unit) {
     val heat = store.muscleHeat { app.exercise(it) }
     val sel = ui.body.ifEmpty { null }
 
-    val list = remember(sel, app.exercises, p.level, p.place) {
+    val list = remember(sel, app.exercises, p.level, p.place, ui.bodyAll) {
         if (sel == null) emptyList()
         else app.exercises
-            .filter { sel in it.primary && suitsProfile(it, p.level, p.place) }
-            .sortedWith(compareByDescending<Exercise> { it.isCompound }.thenBy { it.name })
-            .take(24)
+            .filter { sel in it.primary && (ui.bodyAll || suitsProfile(it, p.level, p.place)) }
+            .sortedWith(compareByDescending<Exercise> { suitsProfile(it, p.level, p.place) }.thenByDescending { it.isCompound }.thenBy { it.name })
     }
 
     Column(Modifier.fillMaxSize()) {
@@ -295,9 +315,16 @@ private fun BodyPane(ui: ExploreUi, onOpen: (String) -> Unit) {
             Column(Modifier.align(Alignment.TopStart).padding(start = 20.dp, top = 12.dp)) {
                 Txt(if (sel == null) "TAP A MUSCLE" else prettyMuscle(sel).uppercase(), T.h1, if (sel == null) C.dim else C.volt)
                 Txt(
-                    if (sel == null) "Drag to spin the body." else "${list.size} moves for your level",
+                    if (sel == null) "Drag to spin the body." else if (ui.bodyAll) "All ${list.size} moves" else "${list.size} moves for your level",
                     T.small, C.dim
                 )
+                if (sel != null) {
+                    Spacer(Modifier.height(8.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Chip("For you", !ui.bodyAll, { ui.bodyAll = false })
+                        Chip("All", ui.bodyAll, { ui.bodyAll = true })
+                    }
+                }
             }
             if (heat.isNotEmpty()) {
                 Box(Modifier.align(Alignment.TopEnd).padding(end = 20.dp, top = 16.dp)) {

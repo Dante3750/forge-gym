@@ -39,11 +39,19 @@ object Motion {
     const val COLS = 8
     const val LOOP_SEC = 2.8f
 
-    /** Newest render first, then the older set as a fallback. */
-    fun urls(movement: String, female: Boolean, angle: Int = 0): List<String> {
+    /** One way to fetch a loop: its sprite sheets and how frames are laid out in them. */
+    class Source(val urls: List<String>, val cols: Int, val perSheet: Int)
+
+    /** Newest render first (HD or small), then older sets as fallbacks. */
+    fun sources(movement: String, female: Boolean, angle: Int, hd: Boolean): List<Source> {
         val g = if (female) "_f" else "_m"
-        val v2 = BASE + "v2/" + movement + g + (if (angle == 1) "_b" else "") + ".webp"
-        return if (angle == 1) listOf(v2) else listOf(v2, BASE + "v1/" + movement + g + ".webp")
+        val a = if (angle == 1) "_b" else ""
+        val base = movement + g + a
+        val v3 = if (hd) Source(listOf(BASE + "v3/" + base + "_0.webp", BASE + "v3/" + base + "_1.webp"), 4, 16)
+        else Source(listOf(BASE + "v3/" + base + "_s.webp"), 8, 32)
+        val out = mutableListOf(v3, Source(listOf(BASE + "v2/" + base + ".webp"), 8, 32))
+        if (angle == 0) out += Source(listOf(BASE + "v1/" + movement + g + ".webp"), 8, 32)
+        return out
     }
 
     /** The same training goal done three ways: gym, dumbbells at home, and no equipment. */
@@ -113,7 +121,7 @@ object Motion {
     }
 }
 
-private class Sheet(val image: ImageBitmap, val cell: Int, val bg: Color)
+private class Sheet(val images: List<ImageBitmap>, val cell: Int, val cols: Int, val perSheet: Int, val bg: Color)
 
 /**
  * Plays a rendered movement loop. Frames are drawn from one sprite sheet and cross-blended,
@@ -125,27 +133,31 @@ fun MotionPlayer(
     female: Boolean,
     modifier: Modifier = Modifier,
     angle: Int = 0,
+    hd: Boolean = true,
     speed: Float = 1f,
     playing: Boolean = true,
     scrim: Boolean = true,
     fallback: @Composable () -> Unit = {}
 ) {
     val ctx = LocalContext.current
-    val urls = Motion.urls(movement, female, angle)
-    val url = urls.first()
+    val sources = Motion.sources(movement, female, angle, hd)
+    val url = sources.first().urls.first()
     var sheet by remember(url) { mutableStateOf<Sheet?>(null) }
     LaunchedEffect(url) {
-        var bmp: android.graphics.Bitmap? = null
-        for (u in urls) {
-            val req = ImageRequest.Builder(ctx).data(u).allowHardware(false).build()
-            val r = ctx.imageLoader.execute(req)
-            bmp = ((r as? SuccessResult)?.drawable as? BitmapDrawable)?.bitmap
-            if (bmp != null) break
+        for (src in sources) {
+            val bmps = ArrayList<android.graphics.Bitmap>()
+            for (u in src.urls) {
+                val req = ImageRequest.Builder(ctx).data(u).allowHardware(false).build()
+                val r = ctx.imageLoader.execute(req)
+                val b = ((r as? SuccessResult)?.drawable as? BitmapDrawable)?.bitmap ?: break
+                bmps += b
+            }
+            if (bmps.size == src.urls.size) {
+                val first = bmps[0]
+                sheet = Sheet(bmps.map { it.asImageBitmap() }, first.width / src.cols, src.cols, src.perSheet, Color(first.getPixel(3, 3)))
+                return@LaunchedEffect
+            }
         }
-        if (bmp == null) return@LaunchedEffect
-        val cell = bmp.width / Motion.COLS
-        val px = bmp.getPixel(3, 3)
-        sheet = Sheet(bmp.asImageBitmap(), cell, Color(px))
     }
     var phase by remember(url) { mutableFloatStateOf(0f) }
     val spd by rememberUpdatedState(speed)
@@ -175,8 +187,11 @@ fun MotionPlayer(
                 val side = min(size.width, size.height).roundToInt()
                 val dst = IntOffset(((size.width - side) / 2).roundToInt(), ((size.height - side) / 2).roundToInt())
                 fun draw(i: Int, alpha: Float) {
-                    val src = IntOffset((i % Motion.COLS) * s.cell, (i / Motion.COLS) * s.cell)
-                    drawImage(s.image, src, IntSize(s.cell, s.cell), dst, IntSize(side, side), alpha = alpha)
+                    val img = s.images[(i / s.perSheet).coerceAtMost(s.images.lastIndex)]
+                    val k = i % s.perSheet
+                    val src = IntOffset((k % s.cols) * s.cell, (k / s.cols) * s.cell)
+                    drawImage(img, src, IntSize(s.cell, s.cell), dst, IntSize(side, side), alpha = alpha,
+                        filterQuality = androidx.compose.ui.graphics.FilterQuality.High)
                 }
                 draw(a, 1f)
                 if (mix > 0.01f) draw(b, mix)

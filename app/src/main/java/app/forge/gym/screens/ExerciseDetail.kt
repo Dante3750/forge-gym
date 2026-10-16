@@ -219,7 +219,7 @@ fun ExerciseDetailScreen(id: String, onBack: () -> Unit, onOpen: (String) -> Uni
                             val here = mv == motion
                             Panel(Modifier.width(160.dp), accent = false, onClick = if (here || ex == null) null else ({ onOpen(ex.id) })) {
                                 Column {
-                                    MotionPlayer(mv, female, Modifier.fillMaxWidth().height(150.dp), scrim = false) {
+                                    MotionPlayer(mv, female, Modifier.fillMaxWidth().height(150.dp), hd = false, scrim = false) {
                                         ExerciseImage(ex?.imageUrl(0), Modifier.fillMaxSize())
                                     }
                                     Column(Modifier.padding(12.dp)) {
