@@ -16,12 +16,13 @@ Taken automatically on an Android emulator by CI after every build, using the la
 | <img src="https://raw.githubusercontent.com/Dante3750/forge-gym/screenshots/exercise.png" width="240"> | <img src="https://raw.githubusercontent.com/Dante3750/forge-gym/screenshots/exercise_home.png" width="240"> | <img src="https://raw.githubusercontent.com/Dante3750/forge-gym/screenshots/plan.png" width="240"> |
 | **Workout** | **Walk** | **Progress** |
 | <img src="https://raw.githubusercontent.com/Dante3750/forge-gym/screenshots/workout.png" width="240"> | <img src="https://raw.githubusercontent.com/Dante3750/forge-gym/screenshots/walk.png" width="240"> | <img src="https://raw.githubusercontent.com/Dante3750/forge-gym/screenshots/progress.png" width="240"> |
-| **Onboarding** | **Settings** | |
-| <img src="https://raw.githubusercontent.com/Dante3750/forge-gym/screenshots/onboarding.png" width="240"> | <img src="https://raw.githubusercontent.com/Dante3750/forge-gym/screenshots/settings.png" width="240"> | |
+| **Live 3D viewer** | **Onboarding** | **Settings** |
+| <img src="https://raw.githubusercontent.com/Dante3750/forge-gym/screenshots/viewer.png" width="240"> | <img src="https://raw.githubusercontent.com/Dante3750/forge-gym/screenshots/onboarding.png" width="240"> | <img src="https://raw.githubusercontent.com/Dante3750/forge-gym/screenshots/settings.png" width="240"> |
 
 ## What's inside
 
 - **Exercise library:** 876 exercises with photos, steps, filters by muscle, level and equipment, and favourites.
+- **Live 3D viewer:** open any exercise in real-time 3D, turn it around and pinch to zoom in on any detail.
 - **3D trainer:** a realistic animated human for every movement, men and women, two camera angles and half speed.
   Rendered from code in [forge-motion](https://github.com/Dante3750/forge-motion).
 - **Three ways to train it:** each move shown for the gym, home dumbbells and no equipment.

@@ -148,7 +148,7 @@ private fun DayCard(
                                     .padding(horizontal = 16.dp, vertical = 10.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                ExerciseImage(e.imageUrl(0), Modifier.size(52.dp).clip(CutXs))
+                                ExerciseImage(app.thumbFor(e), Modifier.size(52.dp).clip(CutXs))
                                 Spacer(Modifier.width(12.dp))
                                 Column(Modifier.weight(1f)) {
                                     Txt(e.name, T.bodyM, maxLines = 2)

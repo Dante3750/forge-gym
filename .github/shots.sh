@@ -23,6 +23,7 @@ shot explore tab:1
 shot body tab:1:body
 shot exercise exercise:Barbell_Full_Squat 24
 shot exercise_home exercise:Goblet_Squat 24
+shot viewer viewer:Goblet_Squat 45
 shot plan plan
 shot workout session:0 22
 shot walk tab:2

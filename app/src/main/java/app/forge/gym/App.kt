@@ -70,6 +70,7 @@ fun ForgeApp(route: String? = null) {
         if (route.endsWith(":body")) exploreUi.seg = 1
         when {
             route.startsWith("exercise:") -> nav.navigate("exercise/" + route.removePrefix("exercise:"))
+            route.startsWith("viewer:") -> nav.navigate("viewer/" + route.removePrefix("viewer:"))
             route == "plan" -> nav.navigate("plan")
             route.startsWith("session:") -> nav.navigate("session/" + route.removePrefix("session:"))
             route == "settings" -> nav.navigate("settings")
@@ -108,8 +109,11 @@ fun ForgeApp(route: String? = null) {
                 }
                 composable("exercise/{id}", arguments = listOf(navArgument("id") { type = NavType.StringType })) { e ->
                     CompositionLocalProvider(LocalAnimScope provides this) {
-                        ExerciseDetailScreen(e.arguments?.getString("id").orEmpty(), { nav.popBackStack() }, { nav.navigate("exercise/$it") })
+                        ExerciseDetailScreen(e.arguments?.getString("id").orEmpty(), { nav.popBackStack() }, { nav.navigate("exercise/$it") }, { nav.navigate("viewer/$it") })
                     }
+                }
+                composable("viewer/{id}", arguments = listOf(navArgument("id") { type = NavType.StringType })) { e ->
+                    app.forge.gym.viewer.Viewer3DScreen(e.arguments?.getString("id").orEmpty()) { nav.popBackStack() }
                 }
                 composable("plan") {
                     CompositionLocalProvider(LocalAnimScope provides this) {

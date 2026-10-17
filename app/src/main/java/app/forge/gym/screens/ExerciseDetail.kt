@@ -24,6 +24,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.FavoriteBorder
+import androidx.compose.material.icons.rounded.ViewInAr
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -70,7 +71,7 @@ private fun MiniToggle(text: String, on: Boolean, onClick: () -> Unit) {
 }
 
 @Composable
-fun ExerciseDetailScreen(id: String, onBack: () -> Unit, onOpen: (String) -> Unit = {}) {
+fun ExerciseDetailScreen(id: String, onBack: () -> Unit, onOpen: (String) -> Unit = {}, onOpen3d: (String) -> Unit = {}) {
     val app = LocalApp.current
     val store = app.store
     val e = app.exercise(id)
@@ -146,11 +147,12 @@ fun ExerciseDetailScreen(id: String, onBack: () -> Unit, onOpen: (String) -> Uni
                 }
             }
         }
-        if (motion != null && mode == 0) {
+        if (motion != null) {
             item {
-                Txt(
-                    "3D demo of the movement pattern. Tap Photos for this exact variation.",
-                    T.small, C.faint, Modifier.padding(horizontal = 20.dp).padding(top = 10.dp)
+                ForgeButton(
+                    "Open in 3D · turn & zoom", { onOpen3d(e.id) },
+                    Modifier.padding(horizontal = 20.dp).padding(top = 14.dp).fillMaxWidth(),
+                    icon = androidx.compose.material.icons.Icons.Rounded.ViewInAr
                 )
             }
         }

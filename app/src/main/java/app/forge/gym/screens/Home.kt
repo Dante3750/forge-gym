@@ -279,7 +279,7 @@ private fun TodayCard(day: PlanDay, idx: Int, total: Int, doneToday: Boolean, on
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 day.items.take(4).forEach { item ->
                     val e = app.exercise(item.exerciseId)
-                    ExerciseImage(e?.imageUrl(0), Modifier.size(58.dp).clip(CutXs))
+                    ExerciseImage(app.thumbFor(e), Modifier.size(58.dp).clip(CutXs))
                 }
             }
             Spacer(Modifier.height(20.dp))

@@ -235,7 +235,7 @@ private fun SearchField(value: String, onChange: (String) -> Unit, hint: String,
 fun ExerciseRow(e: Exercise, fav: Boolean, onClick: () -> Unit, onFav: () -> Unit) {
     Panel(Modifier.fillMaxWidth(), onClick = onClick) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            ExerciseImage(e.imageUrl(0), Modifier.size(88.dp).sharedKey("ex-img-${e.id}"))
+            ExerciseImage(LocalApp.current.thumbFor(e), Modifier.size(88.dp).sharedKey("ex-img-${e.id}"))
             Column(Modifier.weight(1f).padding(horizontal = 14.dp, vertical = 10.dp)) {
                 Txt(e.name, T.h3, maxLines = 2)
                 Spacer(Modifier.height(4.dp))
@@ -345,7 +345,7 @@ private fun BodyPane(ui: ExploreUi, onOpen: (String) -> Unit) {
                 items(list, key = { it.id }) { e ->
                     Panel(Modifier.width(150.dp), onClick = { onOpen(e.id) }) {
                         Column {
-                            ExerciseImage(e.imageUrl(0), Modifier.fillMaxWidth().height(96.dp), scrim = true)
+                            ExerciseImage(app.thumbFor(e), Modifier.fillMaxWidth().height(110.dp), scrim = true)
                             Column(Modifier.padding(10.dp)) {
                                 Txt(e.name, T.h3, maxLines = 2)
                                 Spacer(Modifier.height(4.dp))

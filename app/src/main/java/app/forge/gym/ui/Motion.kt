@@ -51,6 +51,9 @@ object Motion {
 
     private fun q(u: String) = if (rev.isEmpty()) u else "$u?r=$rev"
 
+    /** HD still of a movement for lists and cards. */
+    fun thumb(movement: String, female: Boolean) = q(BASE + "v3/" + movement + (if (female) "_f" else "_m") + "_t.webp")
+
     /** One way to fetch a loop: its sprite sheets and how frames are laid out in them. */
     class Source(val urls: List<String>, val cols: Int, val perSheet: Int)
 

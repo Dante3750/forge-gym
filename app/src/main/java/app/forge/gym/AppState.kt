@@ -41,6 +41,13 @@ class AppState(val context: Context) {
     /** Name of the rendered 3D movement loop for an exercise, if one exists. */
     fun motionFor(id: String): String? = motionMap[id]
 
+    /** HD 3D thumbnail for an exercise (falls back to the stock photo). */
+    fun thumbFor(e: Exercise?): String? {
+        if (e == null) return null
+        val mv = motionMap[e.id] ?: return e.imageUrl(0)
+        return app.forge.gym.ui.Motion.thumb(mv, store.profile.gender == app.forge.gym.data.Gender.FEMALE)
+    }
+
     /** A library exercise that uses [movement], preferring one that trains [muscle]. */
     fun exampleFor(movement: String, muscle: String?, exclude: String? = null): Exercise? {
         val cands = exercises.filter { motionMap[it.id] == movement && it.id != exclude }

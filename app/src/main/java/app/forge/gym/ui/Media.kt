@@ -35,7 +35,7 @@ fun ExerciseImage(url: String?, modifier: Modifier = Modifier, scrim: Boolean = 
                 model = ImageRequest.Builder(ctx).data(url).crossfade(true).build(),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
-                colorFilter = muted,
+                colorFilter = if (url.contains("forge-motion")) null else muted,
                 modifier = Modifier.fillMaxSize()
             )
         }
