@@ -1,0 +1,58 @@
+> Task :app:checkDebugAarMetadata FAILED
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run-1792255624986.json
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:checkDebugAarMetadata'.
+> Could not resolve all files for configuration ':app:debugRuntimeClasspath'.
+   > Could not find com.google.android.filament:filament-android:1.56.6.
+     Searched in the following locations:
+       - https://dl.google.com/dl/android/maven2/com/google/android/filament/filament-android/1.56.6/filament-android-1.56.6.pom
+       - https://repo.maven.apache.org/maven2/com/google/android/filament/filament-android/1.56.6/filament-android-1.56.6.pom
+     Required by:
+--
+   > Could not find com.google.android.filament:gltfio-android:1.56.6.
+     Searched in the following locations:
+       - https://dl.google.com/dl/android/maven2/com/google/android/filament/gltfio-android/1.56.6/gltfio-android-1.56.6.pom
+       - https://repo.maven.apache.org/maven2/com/google/android/filament/gltfio-android/1.56.6/gltfio-android-1.56.6.pom
+     Required by:
+--
+   > Could not find com.google.android.filament:filament-utils-android:1.56.6.
+     Searched in the following locations:
+       - https://dl.google.com/dl/android/maven2/com/google/android/filament/filament-utils-android/1.56.6/filament-utils-android-1.56.6.pom
+       - https://repo.maven.apache.org/maven2/com/google/android/filament/filament-utils-android/1.56.6/filament-utils-android-1.56.6.pom
+     Required by:
+--
+org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':app:checkDebugAarMetadata'.
+	at org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter.execute(CatchExceptionTaskExecuter.java:38)
+	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter$1.executeTask(EventFiringTaskExecuter.java:77)
+	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter$1.call(EventFiringTaskExecuter.java:55)
+	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter$1.call(EventFiringTaskExecuter.java:52)
+--
+Caused by: org.gradle.api.internal.artifacts.ivyservice.TypedResolveException: Could not resolve all files for configuration ':app:debugRuntimeClasspath'.
+	at org.gradle.api.internal.artifacts.ResolveExceptionMapper.mapFailures(ResolveExceptionMapper.java:56)
+	at org.gradle.api.internal.artifacts.configurations.DefaultConfiguration$DefaultResolutionHost.consolidateFailures(DefaultConfiguration.java:1995)
+	at org.gradle.api.internal.artifacts.configurations.ResolutionHost.rethrowFailuresAndReportProblems(ResolutionHost.java:75)
+	at org.gradle.api.internal.artifacts.configurations.ResolutionBackedFileCollection.maybeThrowResolutionFailures(ResolutionBackedFileCollection.java:87)
+--
+Cause 1: org.gradle.internal.resolve.ModuleVersionNotFoundException: Could not find com.google.android.filament:filament-android:1.56.6.
+Searched in the following locations:
+  - https://dl.google.com/dl/android/maven2/com/google/android/filament/filament-android/1.56.6/filament-android-1.56.6.pom
+  - https://repo.maven.apache.org/maven2/com/google/android/filament/filament-android/1.56.6/filament-android-1.56.6.pom
+Required by:
+--
+Cause 2: org.gradle.internal.resolve.ModuleVersionNotFoundException: Could not find com.google.android.filament:gltfio-android:1.56.6.
+Searched in the following locations:
+  - https://dl.google.com/dl/android/maven2/com/google/android/filament/gltfio-android/1.56.6/gltfio-android-1.56.6.pom
+  - https://repo.maven.apache.org/maven2/com/google/android/filament/gltfio-android/1.56.6/gltfio-android-1.56.6.pom
+Required by:
+--
+Cause 3: org.gradle.internal.resolve.ModuleVersionNotFoundException: Could not find com.google.android.filament:filament-utils-android:1.56.6.
+Searched in the following locations:
+  - https://dl.google.com/dl/android/maven2/com/google/android/filament/filament-utils-android/1.56.6/filament-utils-android-1.56.6.pom
+  - https://repo.maven.apache.org/maven2/com/google/android/filament/filament-utils-android/1.56.6/filament-utils-android-1.56.6.pom
+Required by:
+--
+BUILD FAILED in 19s
+1 actionable task: 1 executed
