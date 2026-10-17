@@ -39,6 +39,18 @@ object Motion {
     const val COLS = 8
     const val LOOP_SEC = 2.8f
 
+    /** Render revision from the media branch. Part of every URL, so a re-render replaces cached loops. */
+    var rev by mutableStateOf("")
+
+    /** Reads the current render revision (called once at start-up, off the main thread). */
+    fun refreshRev(): String = runCatching {
+        val c = java.net.URL(BASE + "v3/rev.txt?t=" + System.currentTimeMillis() / 60000).openConnection() as java.net.HttpURLConnection
+        c.useCaches = false; c.connectTimeout = 6000; c.readTimeout = 6000
+        c.inputStream.bufferedReader().use { it.readText().trim() }.take(32)
+    }.getOrDefault("")
+
+    private fun q(u: String) = if (rev.isEmpty()) u else "$u?r=$rev"
+
     /** One way to fetch a loop: its sprite sheets and how frames are laid out in them. */
     class Source(val urls: List<String>, val cols: Int, val perSheet: Int)
 
@@ -47,10 +59,10 @@ object Motion {
         val g = if (female) "_f" else "_m"
         val a = if (angle == 1) "_b" else ""
         val base = movement + g + a
-        val v3 = if (hd) Source(listOf(BASE + "v3/" + base + "_0.webp", BASE + "v3/" + base + "_1.webp"), 4, 16)
-        else Source(listOf(BASE + "v3/" + base + "_s.webp"), 8, 32)
-        val out = mutableListOf(v3, Source(listOf(BASE + "v2/" + base + ".webp"), 8, 32))
-        if (angle == 0) out += Source(listOf(BASE + "v1/" + movement + g + ".webp"), 8, 32)
+        val v3 = if (hd) Source(listOf(q(BASE + "v3/" + base + "_0.webp"), q(BASE + "v3/" + base + "_1.webp")), 4, 16)
+        else Source(listOf(q(BASE + "v3/" + base + "_s.webp")), 8, 32)
+        val out = mutableListOf(v3, Source(listOf(q(BASE + "v2/" + base + ".webp")), 8, 32))
+        if (angle == 0) out += Source(listOf(q(BASE + "v1/" + movement + g + ".webp")), 8, 32)
         return out
     }
 

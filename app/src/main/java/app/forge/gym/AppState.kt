@@ -20,6 +20,7 @@ import app.forge.gym.data.PlanBuilder
 import app.forge.gym.data.PlanDay
 import app.forge.gym.data.Store
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -50,6 +51,15 @@ class AppState(val context: Context) {
 
     suspend fun loadExercises() {
         if (exercises.isNotEmpty()) return
+        val prefs = context.getSharedPreferences("forge_motion", Context.MODE_PRIVATE)
+        app.forge.gym.ui.Motion.rev = prefs.getString("rev", "") ?: ""
+        kotlinx.coroutines.CoroutineScope(Dispatchers.IO).launch {
+            val r = app.forge.gym.ui.Motion.refreshRev()
+            if (r.isNotEmpty()) {
+                prefs.edit().putString("rev", r).apply()
+                withContext(Dispatchers.Main) { app.forge.gym.ui.Motion.rev = r }
+            }
+        }
         motionMap = withContext(Dispatchers.IO) {
             runCatching {
                 val o = org.json.JSONObject(context.assets.open("motion_map.json").bufferedReader().use { it.readText() })
