@@ -7,7 +7,7 @@ at home with dumbbells or with no equipment, a walking tracker and weight check-
 
 ## Screens
 
-Taken automatically on an Android emulator by CI after every build.
+Taken automatically on an Android emulator by CI after every build, using the latest 3D trainer renders.
 
 | Home | Explore | 3D body map |
 |:---:|:---:|:---:|
