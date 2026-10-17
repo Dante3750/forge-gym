@@ -21,10 +21,10 @@ shot warmup tab:0 12
 shot home tab:0
 shot explore tab:1
 shot body tab:1:body
-shot exercise exercise:Barbell_Full_Squat 16
-shot exercise_home exercise:Goblet_Squat 16
+shot exercise exercise:Barbell_Full_Squat 24
+shot exercise_home exercise:Goblet_Squat 24
 shot plan plan
-shot workout session:0 14
+shot workout session:0 22
 shot walk tab:2
 shot progress tab:3
 shot settings settings
