@@ -23,5 +23,5 @@ object GpuProbe {
     }
 
     /** The emulator's GLES translator flattens uniform blocks and cannot link skinned materials. */
-    val supported: Boolean get() = !renderer.contains("OpenGL ES Translator") && !renderer.contains("OpenGL ES 2.")
+    val supported: Boolean get() = !(renderer.contains("OpenGL ES Translator") && !renderer.contains("ANGLE")) && !renderer.contains("OpenGL ES 2.")
 }
