@@ -32,7 +32,7 @@ import com.google.android.filament.utils.GestureDetector
 import com.google.android.filament.utils.Manipulator
 import java.nio.Buffer
 
-class ForgeViewer(private val textureView: TextureView, bg: Int) : android.view.View.OnTouchListener {
+class ForgeViewer(private val textureView: TextureView, bg: Int, lite: Boolean = false) : android.view.View.OnTouchListener {
     val engine: Engine = Engine.create()
     private val uiHelper = UiHelper(UiHelper.ContextErrorPolicy.DONT_CHECK)
     private val renderer: Renderer = engine.createRenderer()
@@ -72,7 +72,7 @@ class ForgeViewer(private val textureView: TextureView, bg: Int) : android.view.
         view.camera = camera
         view.antiAliasing = View.AntiAliasing.FXAA
         view.multiSampleAntiAliasingOptions = view.multiSampleAntiAliasingOptions.apply { enabled = true; sampleCount = 4 }
-        view.ambientOcclusionOptions = view.ambientOcclusionOptions.apply { enabled = true; radius = 0.35f; intensity = 1.2f }
+        view.ambientOcclusionOptions = view.ambientOcclusionOptions.apply { enabled = !lite; radius = 0.35f; intensity = 1.2f }
         view.setShadowType(View.ShadowType.PCF)
         view.colorGrading = ColorGrading.Builder().toneMapper(ToneMapper.Filmic()).build(engine)
         val r = ((bg shr 16) and 0xFF) / 255f; val g = ((bg shr 8) and 0xFF) / 255f; val b = (bg and 0xFF) / 255f
@@ -88,7 +88,7 @@ class ForgeViewer(private val textureView: TextureView, bg: Int) : android.view.
             LightManager.Builder(LightManager.Type.DIRECTIONAL)
                 .color(cr, cg, cb).intensity(power[i]).direction(dirs[i][0], dirs[i][1], dirs[i][2])
                 .castShadows(i == 0)
-                .shadowOptions(LightManager.ShadowOptions().apply { mapSize = 2048; shadowFar = 8f })
+                .shadowOptions(LightManager.ShadowOptions().apply { mapSize = if (lite) 1024 else 2048; shadowFar = 8f })
                 .build(engine, lights[i])
             scene.addEntity(lights[i])
         }
@@ -157,6 +157,7 @@ class ForgeViewer(private val textureView: TextureView, bg: Int) : android.view.
         model?.let { scene.removeEntities(it.entities); assetLoader.destroyAsset(it) }
         modelReady = false
         modelAnimator = null
+        drawn = 0
         model = assetLoader.createAsset(buffer)?.also { a ->
             resourceLoader.asyncBeginLoad(a)
             a.releaseSourceData()
@@ -192,7 +193,8 @@ class ForgeViewer(private val textureView: TextureView, bg: Int) : android.view.
     private var dbg = 0
 
     /** True once the human is on screen and moving. */
-    val showing: Boolean get() = modelAnimator != null && motion != null
+    val showing: Boolean get() = drawn > 2
+    private var drawn = 0
 
     val loadProgress: Float get() = if (model == null) 0f else resourceLoader.asyncGetLoadProgress()
 
@@ -233,7 +235,10 @@ class ForgeViewer(private val textureView: TextureView, bg: Int) : android.view.
         manipulator.getLookAt(eye, tgt, up)
         camera.lookAt(eye[0], eye[1], eye[2], tgt[0], tgt[1], tgt[2], up[0], up[1], up[2])
         val sc = swapChain ?: return
-        if (renderer.beginFrame(sc, frameTimeNanos)) { renderer.render(view); renderer.endFrame() }
+        if (renderer.beginFrame(sc, frameTimeNanos)) {
+            renderer.render(view); renderer.endFrame()
+            if (modelAnimator != null && motion != null) drawn++
+        }
     }
 
     override fun onTouch(v: android.view.View, event: MotionEvent): Boolean { gestures.onTouchEvent(event); return true }

@@ -47,7 +47,7 @@ fun Live3D(
         factory = { c ->
             com.google.android.filament.utils.Utils.init()
             TextureView(c).also { tv ->
-                val v = ForgeViewer(tv, 0x0A0B0D)
+                val v = ForgeViewer(tv, 0x0A0B0D, lite = !interactive)
                 if (interactive) tv.setOnTouchListener(v)
                 viewer = v
             }
@@ -104,7 +104,7 @@ fun Trainer(
     val a by animateFloatAsState(if (showing) 1f else 0f, tween(450), label = "live3d")
     Box(modifier.background(C.bg)) {
         if (a < 1f) MotionPlayer(movement, female, Modifier.fillMaxSize(), angle = angle, speed = speed, playing = playing, scrim = false, fallback = fallback)
-        if (live && GpuProbe.supported) {
+        if (live && GpuProbe.embedded) {
             Live3D(
                 movement, female, Modifier.fillMaxSize().alpha(a),
                 preset = if (angle == 1) ForgeViewer.Preset.FRONT else ForgeViewer.Preset.ANGLE,

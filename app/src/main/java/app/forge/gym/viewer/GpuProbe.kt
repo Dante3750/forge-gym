@@ -24,4 +24,7 @@ object GpuProbe {
 
     /** The emulator's GLES translator flattens uniform blocks and cannot link skinned materials. */
     val supported: Boolean get() = !(renderer.contains("OpenGL ES Translator") && !renderer.contains("ANGLE")) && !renderer.contains("OpenGL ES 2.")
+
+    /** Software renderers (emulators) can show the 3D screen, but not 3D inside scrolling pages. */
+    val embedded: Boolean get() = supported && !renderer.contains("SwiftShader") && !renderer.contains("llvmpipe")
 }
