@@ -25,6 +25,7 @@ shot exercise exercise:Barbell_Full_Squat 24
 shot exercise_home exercise:Goblet_Squat 24
 adb logcat -c
 shot viewer viewer:Goblet_Squat 45
+sleep 1.3; adb exec-out screencap -p > "$OUT/viewer_b.png"
 adb logcat -d > "$OUT/viewer_logcat.txt" 2>&1 || true
 adb shell dumpsys SurfaceFlinger | grep -i "GLES" > "$OUT/gpu.txt" 2>&1 || true
 shot plan plan
