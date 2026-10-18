@@ -1,5 +1,6 @@
 package app.forge.gym.screens
 
+import app.forge.gym.viewer.Trainer
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -104,7 +105,7 @@ fun ExerciseDetailScreen(id: String, onBack: () -> Unit, onOpen: (String) -> Uni
                     }
                 }
                 if (motion != null && mode == 0) {
-                    app.forge.gym.viewer.Trainer(motion, female, Modifier.fillMaxSize(), angle = angle, speed = if (slow) 0.45f else 1f) {
+                    Trainer(motion, female, Modifier.fillMaxSize(), angle = angle, speed = if (slow) 0.45f else 1f) {
                         ExerciseImage(e.imageUrl(0), Modifier.fillMaxSize(), scrim = true)
                     }
                 } else photos()

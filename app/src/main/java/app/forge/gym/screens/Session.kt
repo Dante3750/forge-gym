@@ -1,5 +1,6 @@
 package app.forge.gym.screens
 
+import app.forge.gym.viewer.Trainer
 import app.forge.gym.data.Gender
 
 import androidx.activity.compose.BackHandler
@@ -265,7 +266,7 @@ private fun SessionBody(day: PlanDay, items: List<SessionEx>, onClose: () -> Uni
                         Box(Modifier.fillMaxWidth().height(300.dp)) {
                             val mv = LocalApp.current.motionFor(si.ex.id)
                             if (mv != null) {
-                                app.forge.gym.viewer.Trainer(mv, LocalApp.current.store.profile.gender == Gender.FEMALE, Modifier.fillMaxSize()) {
+                                Trainer(mv, LocalApp.current.store.profile.gender == Gender.FEMALE, Modifier.fillMaxSize()) {
                                     ExerciseLoop(si.ex, Modifier.fillMaxSize())
                                 }
                             } else ExerciseLoop(si.ex, Modifier.fillMaxSize())
