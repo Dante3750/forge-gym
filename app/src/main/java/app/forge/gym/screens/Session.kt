@@ -265,7 +265,7 @@ private fun SessionBody(day: PlanDay, items: List<SessionEx>, onClose: () -> Uni
                         Box(Modifier.fillMaxWidth().height(300.dp)) {
                             val mv = LocalApp.current.motionFor(si.ex.id)
                             if (mv != null) {
-                                MotionPlayer(mv, LocalApp.current.store.profile.gender == Gender.FEMALE, Modifier.fillMaxSize()) {
+                                app.forge.gym.viewer.Trainer(mv, LocalApp.current.store.profile.gender == Gender.FEMALE, Modifier.fillMaxSize()) {
                                     ExerciseLoop(si.ex, Modifier.fillMaxSize())
                                 }
                             } else ExerciseLoop(si.ex, Modifier.fillMaxSize())

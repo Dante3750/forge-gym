@@ -47,6 +47,10 @@ class ForgeViewer(private val textureView: TextureView, bg: Int) : android.view.
     private val lights = IntArray(3)
     private val readyRenderables = IntArray(128)
 
+    private var curPreset = Preset.ANGLE
+    private var focus = floatArrayOf(0f, 0.8f, 0f)
+    private var dist = 4.1f
+
     private var manipulator: Manipulator = buildManipulator(Preset.FRONT, 1, 1)
     private var gestures = GestureDetector(textureView, manipulator)
     private var width = 1
@@ -57,6 +61,9 @@ class ForgeViewer(private val textureView: TextureView, bg: Int) : android.view.
     private var jointPairs = IntArray(0)
     private val tmp = FloatArray(16)
     private var modelReady = false
+    // The model's animator only exists once its resources have loaded; asking earlier caches an empty one.
+    private var modelAnimator: com.google.android.filament.gltfio.Animator? = null
+    private var readyFrames = 0
 
     enum class Preset { FRONT, ANGLE, SIDE, BACK }
 
@@ -94,15 +101,19 @@ class ForgeViewer(private val textureView: TextureView, bg: Int) : android.view.
     }
 
     private fun buildManipulator(p: Preset, w: Int, h: Int): Manipulator {
-        val eye = when (p) {
-            Preset.FRONT -> floatArrayOf(0f, 1.15f, 4.1f)
-            Preset.ANGLE -> floatArrayOf(2.8f, 1.3f, 3.0f)
-            Preset.SIDE -> floatArrayOf(4.1f, 1.1f, 0f)
-            Preset.BACK -> floatArrayOf(0f, 1.2f, -4.1f)
+        val d = when (p) {
+            Preset.FRONT -> floatArrayOf(0f, 0.35f, 4.1f)
+            Preset.ANGLE -> floatArrayOf(2.8f, 0.5f, 3.0f)
+            Preset.SIDE -> floatArrayOf(4.1f, 0.3f, 0f)
+            Preset.BACK -> floatArrayOf(0f, 0.4f, -4.1f)
         }
+        val n = kotlin.math.sqrt(d[0] * d[0] + d[1] * d[1] + d[2] * d[2])
+        // a tall portrait view needs more distance for a wide (lying) body, a wide view for a tall one
+        val aspect = if (h > 0) w.toFloat() / h else 1f
+        val k = dist * (if (aspect < 1f) 1f / aspect.coerceAtLeast(0.5f) * 0.85f + 0.15f else 1f)
         return Manipulator.Builder()
-            .targetPosition(0f, 0.8f, 0f)
-            .orbitHomePosition(eye[0], eye[1], eye[2])
+            .targetPosition(focus[0], focus[1], focus[2])
+            .orbitHomePosition(focus[0] + d[0] / n * k, focus[1] + d[1] / n * k, focus[2] + d[2] / n * k)
             .zoomSpeed(0.06f)
             .orbitSpeed(0.006f, 0.006f)
             .viewport(w, h)
@@ -110,14 +121,42 @@ class ForgeViewer(private val textureView: TextureView, bg: Int) : android.view.
     }
 
     fun setPreset(p: Preset) {
+        curPreset = p
         manipulator = buildManipulator(p, width, height)
         gestures = GestureDetector(textureView, manipulator)
+    }
+
+    /** Frames the camera on the space the body moves through over the whole loop. */
+    private fun frameMotion(a: FilamentAsset) {
+        val an = a.instance.animator
+        val tm = engine.transformManager
+        val names = listOf("root", "head", "foot.L", "foot.R", "wrist.L", "wrist.R", "lowerleg01.L", "lowerleg01.R")
+        val ents = names.map { a.getFirstEntityByName(it) }.filter { it != 0 }
+        if (ents.isEmpty() || an.animationCount == 0) return
+        val lo = floatArrayOf(1e9f, 1e9f, 1e9f); val hi = floatArrayOf(-1e9f, -1e9f, -1e9f)
+        val m = FloatArray(16)
+        var dur = 0f
+        for (i in 0 until an.animationCount) dur = maxOf(dur, an.getAnimationDuration(i))
+        for (step in 0 until 12) {
+            val t = dur * step / 12f
+            for (i in 0 until an.animationCount) an.applyAnimation(i, t)
+            for (e in ents) {
+                tm.getWorldTransform(tm.getInstance(e), m)
+                for (c in 0..2) { lo[c] = minOf(lo[c], m[12 + c]); hi[c] = maxOf(hi[c], m[12 + c]) }
+            }
+        }
+        lo[1] = minOf(lo[1], 0f); hi[1] += 0.2f // floor and the top of the head
+        focus = floatArrayOf((lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2, (lo[2] + hi[2]) / 2)
+        val ext = maxOf(hi[1] - lo[1], maxOf(hi[0] - lo[0], hi[2] - lo[2]) * 0.9f)
+        dist = (ext * 2.05f + 0.45f).coerceIn(2.2f, 5.5f)
+        setPreset(curPreset)
     }
 
     /** The shared human (rest pose, skinned). */
     fun setModel(buffer: Buffer) {
         model?.let { scene.removeEntities(it.entities); assetLoader.destroyAsset(it) }
         modelReady = false
+        modelAnimator = null
         model = assetLoader.createAsset(buffer)?.also { a ->
             resourceLoader.asyncBeginLoad(a)
             a.releaseSourceData()
@@ -132,6 +171,7 @@ class ForgeViewer(private val textureView: TextureView, bg: Int) : android.view.
             resourceLoader.loadResources(a)
             a.releaseSourceData()
             scene.addEntities(a.entities)
+            frameMotion(a)
         }
         pairJoints()
     }
@@ -151,6 +191,9 @@ class ForgeViewer(private val textureView: TextureView, bg: Int) : android.view.
     }
     private var dbg = 0
 
+    /** True once the human is on screen and moving. */
+    val showing: Boolean get() = modelAnimator != null && motion != null
+
     val loadProgress: Float get() = if (model == null) 0f else resourceLoader.asyncGetLoadProgress()
 
     /** Plays the motion at [seconds] and draws a frame. */
@@ -160,7 +203,12 @@ class ForgeViewer(private val textureView: TextureView, bg: Int) : android.view.
         model?.let { m ->
             var count: Int
             while (m.popRenderables(readyRenderables).also { count = it } != 0) scene.addEntities(readyRenderables.copyOf(count))
-            if (!modelReady && resourceLoader.asyncGetLoadProgress() >= 1f) { modelReady = true; scene.addEntities(m.entities) }
+            if (!modelReady && resourceLoader.asyncGetLoadProgress() >= 1f) {
+                resourceLoader.asyncUpdateLoad()
+                modelReady = true; scene.addEntities(m.entities); readyFrames = 0
+            }
+            // a few frames after loading finished, the animator is guaranteed to exist
+            if (modelReady && modelAnimator == null && ++readyFrames > 3) modelAnimator = m.instance.animator
         }
         motion?.let { a ->
             val an = a.instance.animator
@@ -171,7 +219,7 @@ class ForgeViewer(private val textureView: TextureView, bg: Int) : android.view.
             val tm = engine.transformManager
             var k = 0
             while (k < jointPairs.size) { tm.getTransform(jointPairs[k], tmp); tm.setTransform(jointPairs[k + 1], tmp); k += 2 }
-            model?.instance?.animator?.updateBoneMatrices()
+            modelAnimator?.updateBoneMatrices()
             if (dbg++ % 90 == 0) {
                 val m = model
                 val ra = a.getFirstEntityByName("upperarm01.L"); val rm = m?.getFirstEntityByName("upperarm01.L") ?: 0
@@ -222,7 +270,7 @@ class ForgeViewer(private val textureView: TextureView, bg: Int) : android.view.
         override fun onResized(w: Int, h: Int) {
             width = w; height = h
             view.viewport = Viewport(0, 0, w, h)
-            manipulator.setViewport(w, h)
+            setPreset(curPreset)
             updateProjection()
             val fence = engine.createFence(); fence.wait(Fence.Mode.FLUSH, Fence.WAIT_FOR_EVER); engine.destroyFence(fence)
         }

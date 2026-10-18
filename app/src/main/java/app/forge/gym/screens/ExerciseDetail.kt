@@ -104,7 +104,7 @@ fun ExerciseDetailScreen(id: String, onBack: () -> Unit, onOpen: (String) -> Uni
                     }
                 }
                 if (motion != null && mode == 0) {
-                    MotionPlayer(motion, female, Modifier.fillMaxSize(), angle = angle, speed = if (slow) 0.45f else 1f) {
+                    app.forge.gym.viewer.Trainer(motion, female, Modifier.fillMaxSize(), angle = angle, speed = if (slow) 0.45f else 1f) {
                         ExerciseImage(e.imageUrl(0), Modifier.fillMaxSize(), scrim = true)
                     }
                 } else photos()
