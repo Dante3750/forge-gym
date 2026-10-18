@@ -36,6 +36,7 @@ import app.forge.gym.data.Gender
 import app.forge.gym.screens.statusTop
 import app.forge.gym.ui.C
 import app.forge.gym.ui.Chip
+import app.forge.gym.ui.ForgeButton
 import app.forge.gym.ui.IconBox
 import app.forge.gym.ui.Ring
 import app.forge.gym.ui.T
@@ -117,7 +118,7 @@ fun Viewer3DScreen(id: String, onBack: () -> Unit) {
                 Spacer(Modifier.height(8.dp))
                 Txt("This device draws graphics in software and can't run the live 3D model. The HD video on the exercise page still works.", T.body, C.dim, align = androidx.compose.ui.text.style.TextAlign.Center)
                 Spacer(Modifier.height(16.dp))
-                app.forge.gym.ui.ForgeButton("Back", onBack, filled = false)
+                ForgeButton("Back", onBack, filled = false)
             }
         }
         return
