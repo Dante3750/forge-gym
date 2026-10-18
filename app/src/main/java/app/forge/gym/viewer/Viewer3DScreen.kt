@@ -110,6 +110,18 @@ fun Viewer3DScreen(id: String, onBack: () -> Unit) {
     var viewer by remember { mutableStateOf<ForgeViewer?>(null) }
     val spd by rememberUpdatedState(if (playing) speed else 0f)
 
+    if (!GpuProbe.supported) {
+        Box(Modifier.fillMaxSize().background(C.bg).padding(24.dp), contentAlignment = Alignment.Center) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Txt("3D NEEDS A GRAPHICS CHIP", T.h2)
+                Spacer(Modifier.height(8.dp))
+                Txt("This device draws graphics in software and can't run the live 3D model. The HD video on the exercise page still works.", T.body, C.dim, align = androidx.compose.ui.text.style.TextAlign.Center)
+                Spacer(Modifier.height(16.dp))
+                app.forge.gym.ui.ForgeButton("Back", onBack, filled = false)
+            }
+        }
+        return
+    }
     Box(Modifier.fillMaxSize().background(C.bg)) {
         AndroidView(
             factory = { c ->

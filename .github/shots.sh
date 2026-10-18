@@ -26,6 +26,7 @@ shot exercise_home exercise:Goblet_Squat 24
 adb logcat -c
 shot viewer viewer:Goblet_Squat 45
 adb logcat -d > "$OUT/viewer_logcat.txt" 2>&1 || true
+adb shell dumpsys SurfaceFlinger | grep -i "GLES" > "$OUT/gpu.txt" 2>&1 || true
 shot plan plan
 shot workout session:0 22
 shot walk tab:2
