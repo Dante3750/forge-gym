@@ -51,6 +51,7 @@ import app.forge.gym.screens.ProgressScreen
 import app.forge.gym.screens.SessionScreen
 import app.forge.gym.screens.SettingsScreen
 import app.forge.gym.screens.WalkScreen
+import app.forge.gym.viewer.Viewer3DScreen
 import app.forge.gym.screens.rememberExploreUi
 import app.forge.gym.ui.C
 import app.forge.gym.ui.Txt
@@ -113,7 +114,7 @@ fun ForgeApp(route: String? = null) {
                     }
                 }
                 composable("viewer/{id}", arguments = listOf(navArgument("id") { type = NavType.StringType })) { e ->
-                    app.forge.gym.viewer.Viewer3DScreen(e.arguments?.getString("id").orEmpty()) { nav.popBackStack() }
+                    Viewer3DScreen(e.arguments?.getString("id").orEmpty()) { nav.popBackStack() }
                 }
                 composable("plan") {
                     CompositionLocalProvider(LocalAnimScope provides this) {

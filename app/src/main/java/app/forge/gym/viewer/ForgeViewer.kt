@@ -66,7 +66,7 @@ class ForgeViewer(private val textureView: TextureView, bg: Int) : android.view.
         view.antiAliasing = View.AntiAliasing.FXAA
         view.multiSampleAntiAliasingOptions = view.multiSampleAntiAliasingOptions.apply { enabled = true; sampleCount = 4 }
         view.ambientOcclusionOptions = view.ambientOcclusionOptions.apply { enabled = true; radius = 0.35f; intensity = 1.2f }
-        view.shadowType = View.ShadowType.PCF
+        view.setShadowType(View.ShadowType.PCF)
         view.colorGrading = ColorGrading.Builder().toneMapper(ToneMapper.Filmic()).build(engine)
         val r = ((bg shr 16) and 0xFF) / 255f; val g = ((bg shr 8) and 0xFF) / 255f; val b = (bg and 0xFF) / 255f
         scene.skybox = Skybox.Builder().color(r * r, g * g, b * b, 1f).build(engine)
