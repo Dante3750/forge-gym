@@ -95,13 +95,13 @@ class ForgeViewer(private val textureView: TextureView, bg: Int) : android.view.
 
     private fun buildManipulator(p: Preset, w: Int, h: Int): Manipulator {
         val eye = when (p) {
-            Preset.FRONT -> floatArrayOf(0f, 1.2f, 3.4f)
-            Preset.ANGLE -> floatArrayOf(2.3f, 1.35f, 2.5f)
-            Preset.SIDE -> floatArrayOf(3.4f, 1.15f, 0f)
-            Preset.BACK -> floatArrayOf(0f, 1.25f, -3.4f)
+            Preset.FRONT -> floatArrayOf(0f, 1.15f, 4.1f)
+            Preset.ANGLE -> floatArrayOf(2.8f, 1.3f, 3.0f)
+            Preset.SIDE -> floatArrayOf(4.1f, 1.1f, 0f)
+            Preset.BACK -> floatArrayOf(0f, 1.2f, -4.1f)
         }
         return Manipulator.Builder()
-            .targetPosition(0f, 0.85f, 0f)
+            .targetPosition(0f, 0.8f, 0f)
             .orbitHomePosition(eye[0], eye[1], eye[2])
             .zoomSpeed(0.06f)
             .orbitSpeed(0.006f, 0.006f)
