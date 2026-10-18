@@ -47,7 +47,6 @@ fun Live3D(
         factory = { c ->
             com.google.android.filament.utils.Utils.init()
             TextureView(c).also { tv ->
-                tv.isOpaque = false
                 val v = ForgeViewer(tv, 0x0A0B0D)
                 if (interactive) tv.setOnTouchListener(v)
                 viewer = v

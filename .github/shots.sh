@@ -21,7 +21,9 @@ shot warmup tab:0 12
 shot home tab:0
 shot explore tab:1
 shot body tab:1:body
-shot exercise exercise:Barbell_Full_Squat 24
+adb logcat -c
+shot exercise exercise:Barbell_Full_Squat 30
+adb logcat -d | grep -E "ForgeViewer|Filament|AndroidRuntime" > "$OUT/exercise_logcat.txt" 2>&1 || true
 shot exercise_home exercise:Goblet_Squat 24
 adb logcat -c
 shot viewer viewer:Goblet_Squat 45

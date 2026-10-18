@@ -222,11 +222,11 @@ class ForgeViewer(private val textureView: TextureView, bg: Int) : android.view.
             modelAnimator?.updateBoneMatrices()
             if (dbg++ % 90 == 0) {
                 val m = model
-                val ra = a.getFirstEntityByName("upperarm01.L"); val rm = m?.getFirstEntityByName("upperarm01.L") ?: 0
+                val ra = a.getFirstEntityByName("lowerleg01.L"); val rm = m?.getFirstEntityByName("lowerleg01.L") ?: 0
                 val ta = FloatArray(16); val tb = FloatArray(16)
                 if (ra != 0) tm.getTransform(tm.getInstance(ra), ta)
                 if (rm != 0) tm.getTransform(tm.getInstance(rm), tb)
-                android.util.Log.i("ForgeViewer", "t=%.2f pairs=%d armA=%.3f,%.3f,%.3f armM=%.3f,%.3f,%.3f ready=%s".format(seconds, jointPairs.size / 2, ta[4], ta[5], ta[6], tb[4], tb[5], tb[6], modelReady))
+                android.util.Log.i("ForgeViewer", "t=%.2f pairs=%d kneeA=%.3f,%.3f,%.3f kneeM=%.3f,%.3f,%.3f ready=%s".format(seconds, jointPairs.size / 2, ta[4], ta[5], ta[6], tb[4], tb[5], tb[6], modelReady))
             }
         }
         val eye = DoubleArray(3); val tgt = DoubleArray(3); val up = DoubleArray(3)
