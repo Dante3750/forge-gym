@@ -82,7 +82,7 @@ class ForgeViewer(private val textureView: TextureView, bg: Int, lite: Boolean =
         // soft studio ambient
         scene.indirectLight = IndirectLight.Builder().irradiance(1, floatArrayOf(0.55f, 0.56f, 0.6f)).intensity(28_000f).build(engine)
         // key, fill and rim lights
-        val dirs = arrayOf(floatArrayOf(-0.45f, -0.75f, -0.5f), floatArrayOf(0.7f, -0.35f, -0.45f), floatArrayOf(0.25f, -0.4f, 0.9f))
+        val dirs = arrayOf(floatArrayOf(0.5f, -0.75f, -0.45f), floatArrayOf(0.7f, -0.35f, -0.45f), floatArrayOf(0.25f, -0.4f, 0.9f))
         val power = floatArrayOf(95_000f, 32_000f, 70_000f)
         for (i in 0 until 3) {
             lights[i] = EntityManager.get().create()
@@ -119,12 +119,12 @@ class ForgeViewer(private val textureView: TextureView, bg: Int, lite: Boolean =
     /** Swaps the flat ambient for the studio light environment (soft light from every side + reflections). */
     fun setEnvironment(buffer: Buffer) {
         val ibl = runCatching { KTX1Loader.createIndirectLight(engine, buffer) }.getOrNull() ?: return
-        ibl.intensity = 26_000f
+        ibl.intensity = 9_000f
         scene.indirectLight?.let { old -> scene.indirectLight = null; engine.destroyIndirectLight(old) }
         scene.indirectLight = ibl
         // the environment now does the fill: keep a softer key (for the floor shadow) and the rim
         val lm = engine.lightManager
-        val power = floatArrayOf(55_000f, 0f, 45_000f)
+        val power = floatArrayOf(110_000f, 0f, 55_000f)
         for (i in 0 until 3) if (lm.hasComponent(lights[i])) lm.setIntensity(lm.getInstance(lights[i]), power[i])
     }
 
