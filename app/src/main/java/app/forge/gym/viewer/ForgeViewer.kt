@@ -119,7 +119,7 @@ class ForgeViewer(private val textureView: TextureView, bg: Int, lite: Boolean =
     /** Swaps the flat ambient for the studio light environment (soft light from every side + reflections). */
     fun setEnvironment(buffer: Buffer) {
         val ibl = runCatching { KTX1Loader.createIndirectLight(engine, buffer) }.getOrNull() ?: return
-        ibl.intensity = 9_000f
+        ibl.intensity = 12_500f
         scene.indirectLight?.let { old -> scene.indirectLight = null; engine.destroyIndirectLight(old) }
         scene.indirectLight = ibl
         // the environment now does the fill: keep a softer key (for the floor shadow) and the rim
