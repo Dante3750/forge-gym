@@ -105,6 +105,17 @@ class ForgeViewer(private val textureView: TextureView, bg: Int, lite: Boolean =
         })
     }
 
+    /** Body and equipment cast soft shadows; the floor only receives them. */
+    private fun shadows(a: FilamentAsset, cast: Boolean) {
+        val rm = engine.renderableManager
+        for (e in a.entities) {
+            if (!rm.hasComponent(e)) continue
+            val i = rm.getInstance(e)
+            val floor = a.getName(e) == "floor"
+            rm.setCastShadows(i, cast && !floor); rm.setReceiveShadows(i, true)
+        }
+    }
+
     /** Swaps the flat ambient for the studio light environment (soft light from every side + reflections). */
     fun setEnvironment(buffer: Buffer) {
         val ibl = runCatching { KTX1Loader.createIndirectLight(engine, buffer) }.getOrNull() ?: return
@@ -189,6 +200,7 @@ class ForgeViewer(private val textureView: TextureView, bg: Int, lite: Boolean =
             resourceLoader.loadResources(a)
             a.releaseSourceData()
             scene.addEntities(a.entities)
+            shadows(a, cast = true)
             frameMotion(a)
         }
         pairJoints()
@@ -225,6 +237,7 @@ class ForgeViewer(private val textureView: TextureView, bg: Int, lite: Boolean =
             if (!modelReady && resourceLoader.asyncGetLoadProgress() >= 1f) {
                 resourceLoader.asyncUpdateLoad()
                 modelReady = true; scene.addEntities(m.entities); readyFrames = 0
+                shadows(m, cast = true)
             }
             // a few frames after loading finished, the animator is guaranteed to exist
             if (modelReady && modelAnimator == null && ++readyFrames > 3) modelAnimator = m.instance.animator
