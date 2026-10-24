@@ -29,6 +29,7 @@ import com.google.android.filament.gltfio.FilamentAsset
 import com.google.android.filament.gltfio.ResourceLoader
 import com.google.android.filament.gltfio.UbershaderProvider
 import com.google.android.filament.utils.GestureDetector
+import com.google.android.filament.utils.KTX1Loader
 import com.google.android.filament.utils.Manipulator
 import java.nio.Buffer
 
@@ -73,7 +74,8 @@ class ForgeViewer(private val textureView: TextureView, bg: Int, lite: Boolean =
         view.antiAliasing = View.AntiAliasing.FXAA
         view.multiSampleAntiAliasingOptions = view.multiSampleAntiAliasingOptions.apply { enabled = true; sampleCount = 4 }
         view.ambientOcclusionOptions = view.ambientOcclusionOptions.apply { enabled = !lite; radius = 0.35f; intensity = 1.2f }
-        view.setShadowType(View.ShadowType.PCF)
+        view.setShadowType(View.ShadowType.DPCF)
+        view.softShadowOptions = view.softShadowOptions.apply { penumbraScale = 2.5f; penumbraRatioScale = 1.5f }
         view.colorGrading = ColorGrading.Builder().toneMapper(ToneMapper.Filmic()).build(engine)
         val r = ((bg shr 16) and 0xFF) / 255f; val g = ((bg shr 8) and 0xFF) / 255f; val b = (bg and 0xFF) / 255f
         scene.skybox = Skybox.Builder().color(r * r, g * g, b * b, 1f).build(engine)
@@ -88,7 +90,10 @@ class ForgeViewer(private val textureView: TextureView, bg: Int, lite: Boolean =
             LightManager.Builder(LightManager.Type.DIRECTIONAL)
                 .color(cr, cg, cb).intensity(power[i]).direction(dirs[i][0], dirs[i][1], dirs[i][2])
                 .castShadows(i == 0)
-                .shadowOptions(LightManager.ShadowOptions().apply { mapSize = if (lite) 1024 else 2048; shadowFar = 8f })
+                .shadowOptions(LightManager.ShadowOptions().apply {
+                    mapSize = if (lite) 1024 else 2048; shadowFar = 8f
+                    screenSpaceContactShadows = true; stepCount = 8; maxShadowDistance = 0.25f
+                })
                 .build(engine, lights[i])
             scene.addEntity(lights[i])
         }
@@ -98,6 +103,18 @@ class ForgeViewer(private val textureView: TextureView, bg: Int, lite: Boolean =
             override fun onViewAttachedToWindow(v: android.view.View) {}
             override fun onViewDetachedFromWindow(v: android.view.View) = destroy()
         })
+    }
+
+    /** Swaps the flat ambient for the studio light environment (soft light from every side + reflections). */
+    fun setEnvironment(buffer: Buffer) {
+        val ibl = runCatching { KTX1Loader.createIndirectLight(engine, buffer) }.getOrNull() ?: return
+        ibl.intensity = 26_000f
+        scene.indirectLight?.let { old -> scene.indirectLight = null; engine.destroyIndirectLight(old) }
+        scene.indirectLight = ibl
+        // the environment now does the fill: keep a softer key (for the floor shadow) and the rim
+        val lm = engine.lightManager
+        val power = floatArrayOf(55_000f, 0f, 45_000f)
+        for (i in 0 until 3) if (lm.hasComponent(lights[i])) lm.setIntensity(lm.getInstance(lights[i]), power[i])
     }
 
     private fun buildManipulator(p: Preset, w: Int, h: Int): Manipulator {

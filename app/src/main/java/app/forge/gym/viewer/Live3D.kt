@@ -76,6 +76,7 @@ fun Live3D(
     LaunchedEffect(viewer, female, movement) {
         val v = viewer ?: return@LaunchedEffect
         val g = if (female) "f" else "m"
+        Models3D.fetch(ctx, "studio_ibl.ktx") {}?.let { v.setEnvironment(it) }
         val model = Models3D.fetch(ctx, "model_$g.glb") { report(it * 0.85f, false) } ?: return@LaunchedEffect
         v.setModel(model)
         val anim = Models3D.fetch(ctx, "${movement}_$g.glb") { report(0.85f + it * 0.15f, false) } ?: return@LaunchedEffect

@@ -157,6 +157,7 @@ fun Viewer3DScreen(id: String, onBack: () -> Unit) {
             val v = viewer ?: return@LaunchedEffect
             status = "Loading 3D model"
             val g = if (female) "f" else "m"
+            Models3D.fetch(ctx, "studio_ibl.ktx") {}?.let { v.setEnvironment(it) }
             val model = Models3D.fetch(ctx, "model_$g.glb") { progress = it * 0.8f }
             if (model == null) { status = "Couldn't download the 3D model. Check your connection."; return@LaunchedEffect }
             v.setModel(model)
