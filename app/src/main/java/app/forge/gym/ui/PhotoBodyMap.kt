@@ -134,7 +134,7 @@ fun PhotoBodyMap(
                 if (id == 0) continue
                 val a = when {
                     id == sel -> 0.62f
-                    heatById[id] > 0f -> 0.07f + 0.20f * heatById[id]
+                    heatById[id] > 0f -> 0.05f + 0.13f * heatById[id]
                     else -> 0f
                 }
                 if (a > 0f) px[i] = ((a * 255).toInt() shl 24) or (vr shl 16) or (vg shl 8) or vb
