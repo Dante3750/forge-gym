@@ -20,7 +20,8 @@ shot() {
 shot warmup tab:0 12
 shot home tab:0
 shot explore tab:1
-shot body tab:1:body
+shot body tab:1:body 14
+adb shell input tap 540 1060; sleep 3; adb exec-out screencap -p > "$OUT/body_tap.png"
 adb logcat -c
 shot exercise exercise:Barbell_Full_Squat 30
 adb logcat -d | grep -E "ForgeViewer|Filament|AndroidRuntime" > "$OUT/exercise_logcat.txt" 2>&1 || true
