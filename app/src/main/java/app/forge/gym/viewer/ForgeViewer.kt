@@ -51,6 +51,8 @@ class ForgeViewer(private val textureView: TextureView, bg: Int, lite: Boolean =
     private var curPreset = Preset.ANGLE
     private var focus = floatArrayOf(0f, 0.8f, 0f)
     private var dist = 4.1f
+    private var extH = 1.9f
+    private var extW = 0.9f
 
     private var manipulator: Manipulator = buildManipulator(Preset.FRONT, 1, 1)
     private var gestures = GestureDetector(textureView, manipulator)
@@ -136,9 +138,11 @@ class ForgeViewer(private val textureView: TextureView, bg: Int, lite: Boolean =
             Preset.BACK -> floatArrayOf(0f, 0.4f, -4.1f)
         }
         val n = kotlin.math.sqrt(d[0] * d[0] + d[1] * d[1] + d[2] * d[2])
-        // a tall portrait view needs more distance for a wide (lying) body, a wide view for a tall one
+        // distance for the body to fill the view
         val aspect = if (h > 0) w.toFloat() / h else 1f
-        val k = dist * (if (aspect < 1f) 1f / aspect.coerceAtLeast(0.5f) * 0.85f + 0.15f else 1f)
+        // fit the body's height; widen only when a lying / wide pose wouldn't fit across a narrow screen
+        val need = maxOf(extH, extW / aspect.coerceAtLeast(0.3f))
+        val k = (need * 1.75f + 0.5f).coerceIn(2.0f, 7f)
         return Manipulator.Builder()
             .targetPosition(focus[0], focus[1], focus[2])
             .orbitHomePosition(focus[0] + d[0] / n * k, focus[1] + d[1] / n * k, focus[2] + d[2] / n * k)
@@ -175,8 +179,9 @@ class ForgeViewer(private val textureView: TextureView, bg: Int, lite: Boolean =
         }
         lo[1] = minOf(lo[1], 0f); hi[1] += 0.2f // floor and the top of the head
         focus = floatArrayOf((lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2, (lo[2] + hi[2]) / 2)
-        val ext = maxOf(hi[1] - lo[1], maxOf(hi[0] - lo[0], hi[2] - lo[2]) * 0.9f)
-        dist = (ext * 2.05f + 0.45f).coerceIn(2.2f, 5.5f)
+        extH = hi[1] - lo[1]
+        extW = maxOf(hi[0] - lo[0], hi[2] - lo[2]) + 0.1f
+        dist = (extH * 1.75f + 0.5f)
         setPreset(curPreset)
     }
 

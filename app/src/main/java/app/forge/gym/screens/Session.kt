@@ -53,6 +53,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
@@ -372,16 +373,24 @@ private fun SessionBody(day: PlanDay, items: List<SessionEx>, onClose: () -> Uni
                 Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(24.dp)) {
                     Txt("REST", T.label, C.dim)
                     Spacer(Modifier.height(16.dp))
-                    Ring(restLeft.toFloat() / max(restTotal, 1), 270.dp, 10.dp) {
+                    val nextMv = app.motionFor(item.ex.id)
+                    Ring(restLeft.toFloat() / max(restTotal, 1), if (nextMv != null) 210.dp else 270.dp, 10.dp) {
                         Txt(formatClock(restLeft), T.numXL)
                     }
-                    Spacer(Modifier.height(28.dp))
+                    Spacer(Modifier.height(22.dp))
                     Txt("UP NEXT", T.label, C.dim)
                     Spacer(Modifier.height(4.dp))
                     Txt(
                         if (item.logged.size in 1 until item.plan.sets) "Set ${item.logged.size + 1} · ${item.ex.name}" else item.ex.name,
                         T.h2, maxLines = 2
                     )
+                    if (nextMv != null) {
+                        // a quick look at the next move while resting
+                        Spacer(Modifier.height(12.dp))
+                        Box(Modifier.width(240.dp).height(170.dp).clip(RoundedCornerShape(14.dp))) {
+                            MotionPlayer(nextMv, store.profile.gender == Gender.FEMALE, Modifier.fillMaxSize(), hd = false, scrim = false)
+                        }
+                    }
                     Spacer(Modifier.height(28.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         ForgeButton("−15s", {

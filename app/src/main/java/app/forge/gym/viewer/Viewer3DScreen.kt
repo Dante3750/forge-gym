@@ -66,6 +66,13 @@ object Models3D {
 
     /** Returns a direct buffer with the file, reporting download progress 0..1. */
     suspend fun fetch(ctx: android.content.Context, name: String, progress: (Float) -> Unit): ByteBuffer? = withContext(Dispatchers.IO) {
+        val file = fetchFile(ctx, name, progress) ?: return@withContext null
+        val bytes = file.readBytes()
+        ByteBuffer.allocateDirect(bytes.size).order(ByteOrder.nativeOrder()).put(bytes).also { it.flip() }
+    }
+
+    /** Downloads (once per published revision) and returns the cached file. */
+    suspend fun fetchFile(ctx: android.content.Context, name: String, progress: (Float) -> Unit = {}): File? = withContext(Dispatchers.IO) {
         val r = revision()
         val dir = File(ctx.cacheDir, "forge3d").apply { mkdirs() }
         val file = File(dir, "$r-$name")
@@ -91,8 +98,7 @@ object Models3D {
             if (!ok) return@withContext null
         }
         progress(1f)
-        val bytes = file.readBytes()
-        ByteBuffer.allocateDirect(bytes.size).order(ByteOrder.nativeOrder()).put(bytes).also { it.flip() }
+        file
     }
 }
 

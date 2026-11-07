@@ -58,6 +58,7 @@ import app.forge.gym.data.isHome
 import app.forge.gym.data.prettyMuscle
 import app.forge.gym.sharedKey
 import app.forge.gym.ui.BodyMap3D
+import app.forge.gym.ui.PhotoBodyMap
 import app.forge.gym.ui.C
 import app.forge.gym.ui.Chip
 import app.forge.gym.ui.CutSm
@@ -307,7 +308,7 @@ private fun BodyPane(ui: ExploreUi, onOpen: (String) -> Unit) {
             Chip("Back", false, { scope.launch { yaw.animateTo(yaw.nearest(180f)) } })
         }
         Box(Modifier.weight(1f).fillMaxWidth()) {
-            BodyMap3D(
+            PhotoBodyMap(
                 gender = gender, selected = sel, heat = heat,
                 onSelect = { ui.body = it ?: "" },
                 modifier = Modifier.fillMaxSize(), state = yaw

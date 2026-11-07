@@ -41,6 +41,7 @@ import app.forge.gym.data.PlanDay
 import app.forge.gym.data.formatWeight
 import app.forge.gym.data.unitLabel
 import app.forge.gym.greeting
+import app.forge.gym.ui.PhotoBodyMap
 import app.forge.gym.ui.BodyMap3D
 import app.forge.gym.ui.C
 import app.forge.gym.ui.Cut
@@ -179,9 +180,9 @@ fun HomeScreen(
                         Tag("Open 3D body", C.volt)
                     }
                     Box(Modifier.width(140.dp).height(230.dp)) {
-                        BodyMap3D(
+                        PhotoBodyMap(
                             gender = p.gender, selected = null, heat = heat, onSelect = {},
-                            modifier = Modifier.fillMaxSize(), interactive = false, autoSpin = true
+                            modifier = Modifier.fillMaxSize(), autoSpin = true
                         )
                     }
                 }
