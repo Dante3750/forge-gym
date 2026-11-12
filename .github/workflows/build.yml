@@ -44,6 +44,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           cp app/build/outputs/apk/debug/app-debug.apk Forge.apk
+          gh release delete "build-${{ github.run_number }}" --yes --cleanup-tag 2>/dev/null || true   # a re-run replaces its own build
           gh release create "build-${{ github.run_number }}" Forge.apk \
             --title "Forge build ${{ github.run_number }}" \
             --notes "Debug APK. Download Forge.apk on your phone and install it." \
