@@ -75,10 +75,17 @@ class ForgeViewer(private val textureView: TextureView, bg: Int, lite: Boolean =
         view.camera = camera
         view.antiAliasing = View.AntiAliasing.FXAA
         view.multiSampleAntiAliasingOptions = view.multiSampleAntiAliasingOptions.apply { enabled = true; sampleCount = 4 }
-        view.ambientOcclusionOptions = view.ambientOcclusionOptions.apply { enabled = !lite; radius = 0.35f; intensity = 1.2f }
-        view.setShadowType(View.ShadowType.DPCF)
-        view.softShadowOptions = view.softShadowOptions.apply { penumbraScale = 2.5f; penumbraRatioScale = 1.5f }
-        view.colorGrading = ColorGrading.Builder().toneMapper(ToneMapper.Filmic()).build(engine)
+        view.ambientOcclusionOptions = view.ambientOcclusionOptions.apply {
+            enabled = !lite; radius = 0.3f; intensity = 1.35f; power = 1.15f
+            quality = View.QualityLevel.HIGH; upsampling = View.QualityLevel.HIGH; bentNormals = true
+        }
+        // smooth, grain-free soft shadows (the old method left visible speckle around the shadow's edge)
+        view.setShadowType(View.ShadowType.VSM)
+        view.vsmShadowOptions = view.vsmShadowOptions.apply { msaaSamples = if (lite) 1 else 4; highPrecision = true; lightBleedReduction = 0.35f; minVarianceScale = 1.0f }
+        view.dithering = View.Dithering.TEMPORAL
+        // the same film-like colour response as the HD renders: highlights roll off softly, skin doesn't go orange
+        view.colorGrading = ColorGrading.Builder().toneMapper(ToneMapper.Agx(ToneMapper.Agx.AgxLook.PUNCHY))
+            .quality(ColorGrading.QualityLevel.HIGH).build(engine)
         val r = ((bg shr 16) and 0xFF) / 255f; val g = ((bg shr 8) and 0xFF) / 255f; val b = (bg and 0xFF) / 255f
         scene.skybox = Skybox.Builder().color(r * r, g * g, b * b, 1f).build(engine)
         // soft studio ambient
@@ -94,7 +101,8 @@ class ForgeViewer(private val textureView: TextureView, bg: Int, lite: Boolean =
                 .castShadows(i == 0)
                 .shadowOptions(LightManager.ShadowOptions().apply {
                     mapSize = if (lite) 1024 else 2048; shadowFar = 8f
-                    screenSpaceContactShadows = true; stepCount = 8; maxShadowDistance = 0.25f
+                    screenSpaceContactShadows = true; stepCount = 12; maxShadowDistance = 0.25f
+                    blurWidth = if (lite) 6f else 10f
                 })
                 .build(engine, lights[i])
             scene.addEntity(lights[i])
@@ -143,7 +151,7 @@ class ForgeViewer(private val textureView: TextureView, bg: Int, lite: Boolean =
         // fit the body's height; widen only when a lying / wide pose wouldn't fit across a narrow screen
         // measured on device: this lens frames by width, so a narrow portrait view needs proportionally more distance
         val need = maxOf(extH, extW * 0.85f)
-        val k = ((need * 1.75f + 0.4f) * (0.55f / aspect.coerceAtLeast(0.3f) + 0.4f)).coerceIn(2.0f, 9f)
+        val k = ((need * 1.62f + 0.36f) * (0.55f / aspect.coerceAtLeast(0.3f) + 0.4f)).coerceIn(1.9f, 9f)
         return Manipulator.Builder()
             .targetPosition(focus[0], focus[1], focus[2])
             .orbitHomePosition(focus[0] + d[0] / n * k, focus[1] + d[1] / n * k, focus[2] + d[2] / n * k)
