@@ -148,7 +148,7 @@ class ForgeViewer(private val textureView: TextureView, bg: Int, lite: Boolean =
         val aspect = if (h > 0) w.toFloat() / h else 1f
         // fit the body's height; widen only when a lying / wide pose wouldn't fit across a narrow screen
         // measured on device: this lens frames by width, so a narrow portrait view needs proportionally more distance
-        val need = maxOf(extH, extW * 0.85f)
+        val need = maxOf(extH, extW * 1.08f)
         val k = ((need * 1.62f + 0.36f) * (0.55f / aspect.coerceAtLeast(0.3f) + 0.4f)).coerceIn(1.9f, 9f)
         return Manipulator.Builder()
             .targetPosition(focus[0], focus[1], focus[2])
