@@ -38,7 +38,7 @@ class ForgeViewer(private val textureView: TextureView, bg: Int, lite: Boolean =
     private val uiHelper = UiHelper(UiHelper.ContextErrorPolicy.DONT_CHECK)
     private val renderer: Renderer = engine.createRenderer()
     private val scene = engine.createScene()
-    private val camera = engine.createCamera(engine.entityManager.create()).apply { setExposure(16f, 1f / 125f, 100f) }
+    private val camera = engine.createCamera(engine.entityManager.create()).apply { setExposure(16f, 1f / 125f, 175f) }
     private val view: View = engine.createView()
     private val materials = UbershaderProvider(engine)
     private val assetLoader = AssetLoader(engine, materials, EntityManager.get())
@@ -77,14 +77,13 @@ class ForgeViewer(private val textureView: TextureView, bg: Int, lite: Boolean =
         view.multiSampleAntiAliasingOptions = view.multiSampleAntiAliasingOptions.apply { enabled = true; sampleCount = 4 }
         view.ambientOcclusionOptions = view.ambientOcclusionOptions.apply {
             enabled = !lite; radius = 0.3f; intensity = 1.35f; power = 1.15f
-            quality = View.QualityLevel.HIGH; upsampling = View.QualityLevel.HIGH; bentNormals = true
+            quality = View.QualityLevel.MEDIUM; upsampling = View.QualityLevel.MEDIUM; bentNormals = true
         }
-        // smooth, grain-free soft shadows (the old method left visible speckle around the shadow's edge)
-        view.setShadowType(View.ShadowType.VSM)
-        view.vsmShadowOptions = view.vsmShadowOptions.apply { msaaSamples = if (lite) 1 else 4; highPrecision = true; lightBleedReduction = 0.35f; minVarianceScale = 1.0f }
+        view.setShadowType(View.ShadowType.DPCF)
+        view.softShadowOptions = view.softShadowOptions.apply { penumbraScale = 1.7f; penumbraRatioScale = 1.2f }
         view.dithering = View.Dithering.TEMPORAL
         // the same film-like colour response as the HD renders: highlights roll off softly, skin doesn't go orange
-        view.colorGrading = ColorGrading.Builder().toneMapper(ToneMapper.Agx(ToneMapper.Agx.AgxLook.PUNCHY))
+        view.colorGrading = ColorGrading.Builder().toneMapper(ToneMapper.Agx(ToneMapper.Agx.AgxLook.NONE))
             .quality(ColorGrading.QualityLevel.HIGH).build(engine)
         val r = ((bg shr 16) and 0xFF) / 255f; val g = ((bg shr 8) and 0xFF) / 255f; val b = (bg and 0xFF) / 255f
         scene.skybox = Skybox.Builder().color(r * r, g * g, b * b, 1f).build(engine)
@@ -102,7 +101,6 @@ class ForgeViewer(private val textureView: TextureView, bg: Int, lite: Boolean =
                 .shadowOptions(LightManager.ShadowOptions().apply {
                     mapSize = if (lite) 1024 else 2048; shadowFar = 8f
                     screenSpaceContactShadows = true; stepCount = 12; maxShadowDistance = 0.25f
-                    blurWidth = if (lite) 6f else 10f
                 })
                 .build(engine, lights[i])
             scene.addEntity(lights[i])
