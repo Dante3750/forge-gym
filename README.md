@@ -1,7 +1,6 @@
 # Forge
 
-A free Android gym app: 876 exercises, a 3D body map, plans for men and women from beginner to hard, training at the gym,
-at home with dumbbells or with no equipment, a walking tracker and weight check-ins. Everything stays on your phone.
+A free, simple Android gym app: type your name, then browse 876 exercises and watch each one in 3D. Nothing else to set up.
 
 **[Download the latest APK](https://github.com/Dante3750/forge-gym/releases/latest)**
 
@@ -9,27 +8,19 @@ at home with dumbbells or with no equipment, a walking tracker and weight check-
 
 Taken automatically on an Android emulator by CI after every build, using the latest 3D trainer renders.
 
-| Home | Explore | 3D body map |
+| Welcome | All exercises | Filter by muscle |
 |:---:|:---:|:---:|
-| <img src="https://raw.githubusercontent.com/Dante3750/forge-gym/screenshots/home.png" width="240"> | <img src="https://raw.githubusercontent.com/Dante3750/forge-gym/screenshots/explore.png" width="240"> | <img src="https://raw.githubusercontent.com/Dante3750/forge-gym/screenshots/body.png" width="240"> |
-| **Exercise with 3D trainer** | **Same move at home** | **Weekly plan** |
-| <img src="https://raw.githubusercontent.com/Dante3750/forge-gym/screenshots/exercise.png" width="240"> | <img src="https://raw.githubusercontent.com/Dante3750/forge-gym/screenshots/exercise_home.png" width="240"> | <img src="https://raw.githubusercontent.com/Dante3750/forge-gym/screenshots/plan.png" width="240"> |
-| **Workout** | **Walk** | **Progress** |
-| <img src="https://raw.githubusercontent.com/Dante3750/forge-gym/screenshots/workout.png" width="240"> | <img src="https://raw.githubusercontent.com/Dante3750/forge-gym/screenshots/walk.png" width="240"> | <img src="https://raw.githubusercontent.com/Dante3750/forge-gym/screenshots/progress.png" width="240"> |
-| **Live 3D viewer** | **Onboarding** | **Settings** |
-| <img src="https://raw.githubusercontent.com/Dante3750/forge-gym/screenshots/viewer.png" width="240"> | <img src="https://raw.githubusercontent.com/Dante3750/forge-gym/screenshots/onboarding.png" width="240"> | <img src="https://raw.githubusercontent.com/Dante3750/forge-gym/screenshots/settings.png" width="240"> |
+| <img src="https://raw.githubusercontent.com/Dante3750/forge-gym/screenshots/welcome.png" width="240"> | <img src="https://raw.githubusercontent.com/Dante3750/forge-gym/screenshots/home.png" width="240"> | <img src="https://raw.githubusercontent.com/Dante3750/forge-gym/screenshots/chest.png" width="240"> |
+| **Pick a muscle on the body** | **Exercise** | **Turn & zoom in 3D** |
+| <img src="https://raw.githubusercontent.com/Dante3750/forge-gym/screenshots/body.png" width="240"> | <img src="https://raw.githubusercontent.com/Dante3750/forge-gym/screenshots/exercise.png" width="240"> | <img src="https://raw.githubusercontent.com/Dante3750/forge-gym/screenshots/viewer.png" width="240"> |
 
 ## What's inside
 
-- **Exercise library:** 876 exercises with photos, steps, filters by muscle, level and equipment, and favourites.
-- **Live 3D viewer:** open any exercise in real-time 3D, turn it around and pinch to zoom in on any detail.
-- **3D trainer:** a realistic animated human for every movement, men and women, two camera angles and half speed.
+- **One screen:** every exercise in a single list with search and a muscle filter.
+- **Pick on the body:** tap a muscle on a realistic turning body to see its exercises.
+- **3D trainer:** a realistic animated human for every movement, man or woman, slow motion and a second angle.
   Rendered from code in [forge-motion](https://github.com/Dante3750/forge-motion).
-- **Three ways to train it:** each move shown for the gym, home dumbbells and no equipment.
-- **Plans:** a weekly program from your level, goal, days and where you train.
-- **Workouts:** log sets, rest timer, personal records.
-- **Walk mode:** step counter with daily goal and history.
-- **Weight check:** manual weigh-ins, trend chart and BMI; ready for a smart scale later.
+- **Live 3D viewer:** open any exercise in real-time 3D, turn it around and pinch to zoom.
 
 ## Build
 

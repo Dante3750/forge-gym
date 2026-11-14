@@ -1,9 +1,6 @@
 package app.forge.gym
 
 import android.content.Context
-import android.os.Build
-import android.os.VibrationEffect
-import android.os.Vibrator
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
@@ -16,15 +13,10 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import app.forge.gym.data.Exercise
 import app.forge.gym.data.ExerciseRepo
-import app.forge.gym.data.PlanBuilder
-import app.forge.gym.data.PlanDay
 import app.forge.gym.data.Store
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 
 class AppState(val context: Context) {
     val store = Store(context)
@@ -33,8 +25,6 @@ class AppState(val context: Context) {
         private set
 
     private var byId: Map<String, Exercise> = emptyMap()
-    private var cachedKey: String? = null
-    private var cachedPlan: List<PlanDay> = emptyList()
 
     private var motionMap: Map<String, String> = emptyMap()
 
@@ -80,25 +70,6 @@ class AppState(val context: Context) {
 
     /** Reads [exercises] first so screens recompose once the library has loaded. */
     fun exercise(id: String): Exercise? = if (exercises.isEmpty()) null else byId[id]
-
-    /** The weekly program for the current profile. Cached until the profile or the library changes. */
-    fun plan(): List<PlanDay> {
-        val list = exercises
-        val p = store.profile
-        val key = p.planKey + "|" + list.size
-        if (key != cachedKey) {
-            cachedPlan = PlanBuilder.build(p, list)
-            cachedKey = key
-        }
-        return cachedPlan
-    }
-
-    /** Which day of the plan is up next. */
-    fun nextDayIndex(): Int {
-        val n = plan().size
-        if (n == 0) return 0
-        return store.workouts.size % n
-    }
 }
 
 val LocalApp = staticCompositionLocalOf<AppState> { error("AppState not provided") }
@@ -120,29 +91,3 @@ fun Modifier.sharedKey(key: String): Modifier {
         )
     }
 }
-
-@Suppress("DEPRECATION")
-fun buzz(context: Context, long: Boolean = true) {
-    try {
-        val v = context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator ?: return
-        if (!v.hasVibrator()) return
-        val pattern = if (long) longArrayOf(0, 180, 90, 180, 90, 320) else longArrayOf(0, 60)
-        if (Build.VERSION.SDK_INT >= 26) {
-            v.vibrate(VibrationEffect.createWaveform(pattern, -1))
-        } else {
-            v.vibrate(pattern, -1)
-        }
-    } catch (e: Exception) {
-        // vibration is a nicety, never a reason to crash
-    }
-}
-
-fun greeting(hour: Int): String = when {
-    hour < 5 -> "Late night"
-    hour < 12 -> "Morning"
-    hour < 17 -> "Afternoon"
-    else -> "Evening"
-}
-
-private val dateFmt = DateTimeFormatter.ofPattern("EEE d MMM", Locale.getDefault())
-fun formatDay(d: LocalDate): String = d.format(dateFmt)
