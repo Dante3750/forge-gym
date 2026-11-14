@@ -47,6 +47,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import app.forge.gym.data.RoutineItem
 import app.forge.gym.data.formatClock
 import app.forge.gym.screens.BodyPickerScreen
 import app.forge.gym.screens.ExerciseDetailScreen
@@ -158,7 +159,7 @@ fun ForgeApp(route: String? = null) {
                             val ex = app.exercise(id)
                             if (ex != null) {
                                 if (target == "live") app.addToLive(ex)
-                                else draft.items.add(app.forge.gym.data.RoutineItem(ex.id, ex.name, 3))
+                                else draft.items.add(RoutineItem(ex.id, ex.name, 3))
                             }
                             nav.popBackStack()
                         },
