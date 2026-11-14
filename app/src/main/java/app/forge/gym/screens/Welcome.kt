@@ -52,7 +52,7 @@ fun WelcomeScreen(onBack: (() -> Unit)? = null, onDone: () -> Unit) {
             Spacer(Modifier.height(20.dp))
         }
         Txt("FORGE", T.numXL, C.volt)
-        Txt(if (onBack == null) "Every exercise, shown in 3D." else "Your details", T.h2)
+        Txt(if (onBack == null) "Log your workouts. See every exercise in 3D." else "Your details", T.h2)
         Spacer(Modifier.height(18.dp))
         Txt("WHAT'S YOUR NAME?", T.label, C.dim)
         NameField(name, { name = it })

@@ -81,3 +81,22 @@ fun SearchField(value: String, onChange: (String) -> Unit, hint: String, modifie
         }
     }
 }
+
+/** A plain one-line text box (routine and workout names). */
+@Composable
+fun TitleField(value: String, onChange: (String) -> Unit, hint: String, modifier: Modifier = Modifier) {
+    BasicTextField(
+        value = value,
+        onValueChange = { if (it.length <= 40) onChange(it) },
+        singleLine = true,
+        textStyle = T.h2.copy(color = C.text),
+        cursorBrush = SolidColor(C.volt),
+        modifier = modifier.fillMaxWidth(),
+        decorationBox = { inner ->
+            Box(Modifier.fillMaxWidth().clip(CutSm).background(C.surface).border(1.dp, C.line, CutSm).padding(horizontal = 14.dp, vertical = 12.dp)) {
+                if (value.isEmpty()) Txt(hint, T.h2, C.faint, maxLines = 1)
+                inner()
+            }
+        }
+    )
+}

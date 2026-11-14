@@ -80,7 +80,8 @@ data class Profile(
     val planKey: String get() = "$gender|$level|$goal|$place|$daysPerWeek|$planSeed"
 }
 
-data class SetLog(val reps: Int, val weightKg: Float)
+/** One finished set. [warm] marks a warm-up set, which does not count towards records. */
+data class SetLog(val reps: Int, val weightKg: Float, val warm: Boolean = false)
 
 data class ExerciseLog(val exerciseId: String, val name: String, val sets: List<SetLog>)
 

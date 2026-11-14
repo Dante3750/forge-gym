@@ -22,6 +22,7 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.AccessibilityNew
 import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material3.Icon
@@ -46,6 +47,7 @@ import app.forge.gym.ui.C
 import app.forge.gym.ui.Chip
 import app.forge.gym.ui.CutXs
 import app.forge.gym.ui.Empty
+import app.forge.gym.ui.IconBox
 import app.forge.gym.ui.ExerciseImage
 import app.forge.gym.ui.Panel
 import app.forge.gym.ui.T
@@ -77,7 +79,11 @@ fun equipmentLabel(e: Exercise): String = when (e.equipment) {
 
 /** The whole app in one screen: every exercise, a search box and a muscle filter. */
 @Composable
-fun LibraryScreen(ui: LibraryUi, listState: LazyListState, onOpen: (String) -> Unit, onBody: () -> Unit, onProfile: () -> Unit) {
+fun LibraryScreen(
+    ui: LibraryUi, listState: LazyListState, onOpen: (String) -> Unit, onBody: () -> Unit,
+    /** Set when this is the "add exercise" picker: shows a back button and a title instead of the greeting. */
+    onBack: (() -> Unit)? = null
+) {
     val app = LocalApp.current
     val all = app.exercises
     val name = app.store.profile.name
@@ -100,20 +106,22 @@ fun LibraryScreen(ui: LibraryUi, listState: LazyListState, onOpen: (String) -> U
             Modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(top = statusTop() + 14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(Modifier.weight(1f)) {
-                Txt(if (name.isBlank()) "HI" else "HI, ${name.uppercase()}", T.label, C.volt, maxLines = 1)
-                Txt("EXERCISES", T.hero)
+            if (onBack != null) {
+                IconBox(Icons.AutoMirrored.Rounded.ArrowBack, onBack)
+                Spacer(Modifier.width(14.dp))
+                Txt("ADD EXERCISE", T.h1)
+            } else {
+                Column(Modifier.weight(1f)) {
+                    Txt(if (name.isBlank()) "HI" else "HI, ${name.uppercase()}", T.label, C.volt, maxLines = 1)
+                    Txt("EXERCISES", T.hero)
+                }
             }
-            Box(
-                Modifier.size(46.dp).pressable(onClick = onProfile).clip(CutXs).background(C.surface).border(1.dp, C.line, CutXs),
-                contentAlignment = Alignment.Center
-            ) { Txt(name.trim().take(1).uppercase().ifEmpty { "?" }, T.h2, C.text) }
         }
         Spacer(Modifier.height(14.dp))
         SearchField(ui.query, { ui.query = it }, if (all.isEmpty()) "Search exercises" else "Search ${all.size} exercises", Modifier.padding(horizontal = 20.dp))
         Spacer(Modifier.height(12.dp))
         LazyRow(contentPadding = PaddingValues(horizontal = 20.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            item {
+            if (onBack == null) item {
                 Row(
                     Modifier.pressable(onClick = onBody).clip(CutXs).border(1.dp, C.volt, CutXs).padding(horizontal = 12.dp, vertical = 6.dp),
                     verticalAlignment = Alignment.CenterVertically

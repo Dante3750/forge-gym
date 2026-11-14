@@ -37,7 +37,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import app.forge.gym.LocalApp
 import app.forge.gym.data.Gender
+import app.forge.gym.data.formatWeight
 import app.forge.gym.data.prettyMuscle
+import app.forge.gym.data.unitLabel
 import app.forge.gym.sharedKey
 import app.forge.gym.ui.C
 import app.forge.gym.ui.CutSm
@@ -85,6 +87,8 @@ fun ExerciseDetailScreen(id: String, onBack: () -> Unit, onOpen3d: (String) -> U
     var female by rememberSaveable { mutableStateOf(app.store.profile.gender == Gender.FEMALE) }
     var slow by rememberSaveable { mutableStateOf(false) }
     var angle by rememberSaveable { mutableIntStateOf(0) }
+    val useKg = app.store.profile.useKg
+    val history = app.store.historyFor(e.id)
 
     LazyColumn(
         Modifier.fillMaxSize(),
@@ -143,6 +147,34 @@ fun ExerciseDetailScreen(id: String, onBack: () -> Unit, onOpen3d: (String) -> U
                     Modifier.padding(horizontal = 20.dp).padding(top = 16.dp).fillMaxWidth(),
                     icon = Icons.Rounded.ViewInAr
                 )
+            }
+        }
+        if (history.isNotEmpty()) {
+            item {
+                Column(Modifier.padding(horizontal = 20.dp).padding(top = 26.dp)) {
+                    SectionLabel("Your records")
+                    Spacer(Modifier.height(12.dp))
+                    val work = history.flatMap { it.second.sets }.filter { !it.warm }
+                    val heavy = work.maxOfOrNull { it.weightKg } ?: 0f
+                    val oneRm = work.maxOfOrNull { it.weightKg * (1f + it.reps / 30f) } ?: 0f
+                    val reps = work.maxOfOrNull { it.reps } ?: 0
+                    Row(horizontalArrangement = Arrangement.spacedBy(22.dp)) {
+                        if (heavy > 0f) Mini("Heaviest", "${formatWeight(heavy, useKg)} ${unitLabel(useKg)}")
+                        if (heavy > 0f) Mini("Best 1-rep max", "${formatWeight(oneRm, useKg)} ${unitLabel(useKg)}")
+                        Mini("Most reps", "$reps")
+                        Mini("Times done", "${history.size}")
+                    }
+                    Spacer(Modifier.height(16.dp))
+                    history.take(5).forEach { (w, log) ->
+                        Row(Modifier.padding(bottom = 8.dp)) {
+                            Txt(workoutDate(w), T.small, C.dim, Modifier.width(96.dp), maxLines = 1)
+                            Txt(
+                                log.sets.joinToString("   ") { if (it.weightKg > 0f) "${formatWeight(it.weightKg, useKg)}×${it.reps}" else "${it.reps}" },
+                                T.bodyM, C.text, Modifier.weight(1f), maxLines = 2
+                            )
+                        }
+                    }
+                }
             }
         }
         if (e.primary.isNotEmpty() || e.secondary.isNotEmpty()) {

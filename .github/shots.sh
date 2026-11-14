@@ -16,19 +16,22 @@ shot() {
   adb exec-out screencap -p > "$OUT/$name.png"
   echo "shot $name ($(stat -c %s "$OUT/$name.png") bytes)"
 }
-# first launch sets a demo name so the welcome screen is skipped
-shot warmup home 14
-shot home home
+# first launch seeds a demo name and a few past workouts
+shot warmup tab:0 14
+shot workout tab:0
+shot exercises tab:1
 shot chest home:chest
+shot profile tab:2
+shot live live 12
+adb shell input tap 1000 1090; sleep 2; adb exec-out screencap -p > "$OUT/live_tick.png"
+shot routine routine
 shot body body 14
 adb shell input tap 540 1060; sleep 3; adb exec-out screencap -p > "$OUT/body_tap.png"
 adb logcat -c
 shot exercise exercise:Barbell_Full_Squat 30
 adb logcat -d | grep -E "ForgeViewer|Filament|AndroidRuntime" > "$OUT/exercise_logcat.txt" 2>&1 || true
-shot exercise_home exercise:Pushups 24
 adb logcat -c
 shot viewer viewer:Goblet_Squat 45
-shot viewer2 viewer:Pushups 40
 adb logcat -d > "$OUT/viewer_logcat.txt" 2>&1 || true
 adb shell pm clear $PKG > /dev/null
 shot welcome welcome 8 false

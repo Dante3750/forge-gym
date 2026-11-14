@@ -27,6 +27,7 @@ class Store(context: Context) {
     val weights = mutableStateListOf<WeightEntry>().apply { addAll(readWeights()) }
     val walks = mutableStateListOf<WalkLog>().apply { addAll(readWalks()) }
     val favorites = mutableStateListOf<String>().apply { addAll(readFavs()) }
+    val routines = mutableStateListOf<Routine>().apply { addAll(readRoutines()) }
     private val water = mutableStateMapOf<String, Int>().apply { putAll(readWater()) }
 
     var activeWalk by mutableStateOf(readActiveWalk())
@@ -78,6 +79,70 @@ class Store(context: Context) {
         }.toString()).apply()
     }
 
+    /** Adds a routine, or replaces the one with the same id. */
+    fun saveRoutine(r: Routine) {
+        val i = routines.indexOfFirst { it.id == r.id }
+        if (i >= 0) routines[i] = r else routines.add(r)
+        writeRoutines()
+    }
+
+    fun deleteRoutine(id: Long) {
+        routines.removeAll { it.id == id }
+        writeRoutines()
+    }
+
+    private fun writeRoutines() {
+        sp.edit().putString("routines", JSONArray().also { a ->
+            routines.forEach { r ->
+                val items = JSONArray()
+                r.items.forEach { items.put(JSONObject().put("id", it.exerciseId).put("name", it.name).put("sets", it.sets)) }
+                a.put(JSONObject().put("id", r.id).put("title", r.title).put("items", items))
+            }
+        }.toString()).apply()
+    }
+
+    private fun readRoutines(): List<Routine> {
+        val s = sp.getString("routines", null) ?: return emptyList()
+        return try {
+            val arr = JSONArray(s)
+            List(arr.length()) { i ->
+                val o = arr.getJSONObject(i)
+                val ia = o.getJSONArray("items")
+                Routine(o.getLong("id"), o.getString("title"), List(ia.length()) { k ->
+                    val io = ia.getJSONObject(k)
+                    RoutineItem(io.getString("id"), io.getString("name"), io.optInt("sets", 3))
+                })
+            }
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
+    /** Whether the starter routines were already offered (so deleting them all does not bring them back). */
+    var routinesSeeded: Boolean
+        get() = sp.getBoolean("routinesSeeded", false)
+        set(v) { sp.edit().putBoolean("routinesSeeded", v).apply() }
+
+    /** The workout in progress, as JSON (null = none). */
+    fun saveLive(json: String?) {
+        if (json == null) sp.edit().remove("live").apply() else sp.edit().putString("live", json).apply()
+    }
+
+    fun readLive(): String? = sp.getString("live", null)
+
+    /** The sets logged the last time this exercise was done (newest workout first). */
+    fun lastSetsFor(exerciseId: String): List<SetLog> {
+        for (w in workouts) {
+            val ex = w.exercises.firstOrNull { it.exerciseId == exerciseId } ?: continue
+            if (ex.sets.isNotEmpty()) return ex.sets
+        }
+        return emptyList()
+    }
+
+    /** Every time this exercise was logged, newest first. */
+    fun historyFor(exerciseId: String): List<Pair<WorkoutLog, ExerciseLog>> =
+        workouts.mapNotNull { w -> w.exercises.firstOrNull { it.exerciseId == exerciseId && it.sets.isNotEmpty() }?.let { w to it } }
+
     fun toggleFavorite(id: String) {
         if (id in favorites) favorites.remove(id) else favorites.add(id)
         sp.edit().putString("favs", JSONArray(favorites.toList()).toString()).apply()
@@ -110,7 +175,7 @@ class Store(context: Context) {
     fun resetAll() {
         sp.edit().clear().apply()
         profile = Profile()
-        workouts.clear(); weights.clear(); walks.clear(); favorites.clear(); water.clear()
+        workouts.clear(); weights.clear(); walks.clear(); favorites.clear(); water.clear(); routines.clear()
         activeWalk = null
     }
 
@@ -153,7 +218,7 @@ class Store(context: Context) {
         workouts.forEach { w ->
             w.exercises.forEach { ex ->
                 ex.sets.forEach { s ->
-                    if (s.weightKg > 0f) {
+                    if (s.weightKg > 0f && !s.warm) {
                         val est = s.weightKg * (1f + s.reps / 30f)
                         if (est > (best[ex.exerciseId] ?: 0f)) best[ex.exerciseId] = est
                     }
@@ -224,7 +289,7 @@ class Store(context: Context) {
         val ex = JSONArray()
         w.exercises.forEach { e ->
             val sets = JSONArray()
-            e.sets.forEach { sets.put(JSONObject().put("r", it.reps).put("w", it.weightKg.toDouble())) }
+            e.sets.forEach { sets.put(JSONObject().put("r", it.reps).put("w", it.weightKg.toDouble()).put("wu", it.warm)) }
             ex.put(JSONObject().put("id", e.exerciseId).put("name", e.name).put("sets", sets))
         }
         return JSONObject().put("id", w.id).put("title", w.title).put("at", w.startedAt)
@@ -250,7 +315,7 @@ class Store(context: Context) {
                             e.getString("id"), e.getString("name"),
                             List(sa.length()) { k ->
                                 val so = sa.getJSONObject(k)
-                                SetLog(so.getInt("r"), so.getDouble("w").toFloat())
+                                SetLog(so.getInt("r"), so.getDouble("w").toFloat(), so.optBoolean("wu", false))
                             }
                         )
                     }

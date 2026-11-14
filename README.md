@@ -1,6 +1,6 @@
 # Forge
 
-A free, simple Android gym app: type your name, then browse 876 exercises and watch each one in 3D. Nothing else to set up.
+A free Android workout tracker: build routines, log every set with last time's numbers beside it, rest timer, stats and history, and 876 exercises you can watch in 3D. No account, no limits; everything stays on your phone.
 
 **[Download the latest APK](https://github.com/Dante3750/forge-gym/releases/latest)**
 
@@ -8,19 +8,20 @@ A free, simple Android gym app: type your name, then browse 876 exercises and wa
 
 Taken automatically on an Android emulator by CI after every build, using the latest 3D trainer renders.
 
-| Welcome | All exercises | Filter by muscle |
+| Workout | Logging a workout | Profile |
 |:---:|:---:|:---:|
-| <img src="https://raw.githubusercontent.com/Dante3750/forge-gym/screenshots/welcome.png" width="240"> | <img src="https://raw.githubusercontent.com/Dante3750/forge-gym/screenshots/home.png" width="240"> | <img src="https://raw.githubusercontent.com/Dante3750/forge-gym/screenshots/chest.png" width="240"> |
-| **Pick a muscle on the body** | **Exercise** | **Turn & zoom in 3D** |
-| <img src="https://raw.githubusercontent.com/Dante3750/forge-gym/screenshots/body.png" width="240"> | <img src="https://raw.githubusercontent.com/Dante3750/forge-gym/screenshots/exercise.png" width="240"> | <img src="https://raw.githubusercontent.com/Dante3750/forge-gym/screenshots/viewer.png" width="240"> |
+| <img src="https://raw.githubusercontent.com/Dante3750/forge-gym/screenshots/workout.png" width="240"> | <img src="https://raw.githubusercontent.com/Dante3750/forge-gym/screenshots/live_tick.png" width="240"> | <img src="https://raw.githubusercontent.com/Dante3750/forge-gym/screenshots/profile.png" width="240"> |
+| **Exercises** | **Exercise** | **Turn & zoom in 3D** |
+| <img src="https://raw.githubusercontent.com/Dante3750/forge-gym/screenshots/exercises.png" width="240"> | <img src="https://raw.githubusercontent.com/Dante3750/forge-gym/screenshots/exercise.png" width="240"> | <img src="https://raw.githubusercontent.com/Dante3750/forge-gym/screenshots/viewer.png" width="240"> |
 
 ## What's inside
 
-- **One screen:** every exercise in a single list with search and a muscle filter.
-- **Pick on the body:** tap a muscle on a realistic turning body to see its exercises.
+- **Routines:** save the exercises for each training day and start them with one tap. Four starter routines included.
+- **Workout logging:** weight and reps per set, last time's numbers beside each set, warm-up sets, and a rest timer that starts when you tick a set.
+- **Profile:** workouts per week, sets per muscle, streak, and your full history. Records and past sets on every exercise.
+- **Exercises:** all 876 in one list with search, a muscle filter and a tap-a-muscle body picker.
 - **3D trainer:** a realistic animated human for every movement, man or woman, slow motion and a second angle.
-  Rendered from code in [forge-motion](https://github.com/Dante3750/forge-motion).
-- **Live 3D viewer:** open any exercise in real-time 3D, turn it around and pinch to zoom.
+  Rendered from code in [forge-motion](https://github.com/Dante3750/forge-motion). Open any exercise in real-time 3D to turn and zoom.
 
 ## Build
 
